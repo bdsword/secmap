@@ -1,0 +1,8 @@
+create
+./bf  -n  <bit vector size> -k <hash#> -o <bloom filter name>
+
+add element
+./bf -a <filname> -o <bloom filter name>
+
+check
+./bf -c <filename> -o <bloom filter name>

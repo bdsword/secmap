@@ -1,0 +1,3 @@
+TYPE=HELLO WORLD
+LOG=HELLO_WORLD.log
+COMMAND=hello_world.rb

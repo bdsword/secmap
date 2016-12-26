@@ -10,7 +10,7 @@ load requirepath
 taskUID = ARGV[0]
 filename = ARGV[1]
 
-content = File.new(filename).read
+content = File.new(filename, 'rb').read
 begin
 	cassandra_ip =  CASSANDRA[rand(CASSANDRA.size)]
 	client = Cassandra.new(KEYSPACE , cassandra_ip.to_s+':'+CASSANDRAPORT )
@@ -37,8 +37,7 @@ rescue => detail
 		`echo "[#{Time.now.to_s}] [Fail!!] putToCassandra:#{taskUID}" >> #{LOG_HOME}/input.log`
 		puts "XXXXXXXXX100XXXXXXXXXXX"
 		exit 95
-	end   
+	end
 end
 
 `echo "#{taskUID} #{filename}" >> #{LOG_HOME}/taskUID_vs_filename.log`
-

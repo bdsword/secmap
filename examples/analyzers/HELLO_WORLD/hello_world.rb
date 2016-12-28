@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 dll=`ls | grep .dll`
 exe=`ls | grep .exe`

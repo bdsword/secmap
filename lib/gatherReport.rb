@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 require 'pathname'
 repath = Pathname.new(__FILE__).dirname.realpath+"./common.rb"

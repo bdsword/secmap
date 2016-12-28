@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 require 'pathname'
 requirepath = Pathname.new(__FILE__).dirname.realpath+"../../lib/common.rb"

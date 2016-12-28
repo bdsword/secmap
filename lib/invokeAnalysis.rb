@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 # invokeAnalysis( command , filename)==>bool timeout
 # safe invoke analyzers by resource limit
 require 'pathname'

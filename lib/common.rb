@@ -9,7 +9,6 @@ require 'redis'
 secconfpath = Pathname.new(__FILE__).dirname.realpath + "../conf/secmap_conf.rb"
 require secconfpath
 
-#ENV['LOG_PATH']        	= "/home/dsns/secmap-run/secmap-0.1/Logs"
 LIB_HOME="#{ENV['SECMAP_HOME']}/lib"
 LOG_HOME="#{ENV['SECMAP_HOME']}/logs"
 

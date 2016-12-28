@@ -3,7 +3,8 @@ require 'socket'
 require 'rubygems'
 require 'cassandra'
 require 'pathname'
-load "~/secmap-run/lib/common.rb"
+requirepath = Pathname.new(__FILE__).dirname.realpath+"../common.rb"
+load requirepath
 
 col_family = ARGV[0]
 

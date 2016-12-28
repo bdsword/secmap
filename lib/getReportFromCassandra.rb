@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'socket'
 require 'rubygems'
-require 'cassandra/0.7'
+require 'cassandra'
 require 'pathname'
 requirepath = Pathname.new(__FILE__).dirname.realpath+"../lib/common.rb"
 load requirepath

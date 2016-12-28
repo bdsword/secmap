@@ -3,7 +3,7 @@
 require 'pathname'
 require 'rubygems'
 require 'redis'
-require 'cassandra/0.7'
+require 'cassandra'
 requirepath = Pathname.new(__FILE__).dirname.realpath+"../lib/common.rb"
 load requirepath
 

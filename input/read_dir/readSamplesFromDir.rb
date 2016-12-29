@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 require 'find'
 require 'shellwords'
-$KCODE = 'esun'
 
 target_path = ARGV[0]
 total = `find #{target_path.inspect} -depth | wc -l`.chop

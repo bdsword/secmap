@@ -92,4 +92,37 @@ class DockerWrapper
 		end
 		return info
 	end
+
+	def main(pidfile=nil)
+		errMsg = "usage: #{__FILE__} init/start/stop/status"
+		if ARGV.length != 1
+			puts errMsg
+			exit
+		end
+		case ARGV[0]
+		when 'init'
+			getImage
+			createContainer
+		when 'start'
+			startContainer
+			if pidfile != nil
+				`echo docker > #{pidfile}`
+			end
+		when 'stop'
+			stopContainer
+			if pidfile != nil
+				`rm #{pidfile}`
+			end
+		when 'restart'
+			stopContainer
+			startContainer
+			if pidfile != nil
+				`echo docker > #{pidfile}`
+			end
+		when 'status'
+			puts "running ? " + infoContainer["State"]["Running"].to_s
+		else
+			puts errMsg
+		end
+	end
 end

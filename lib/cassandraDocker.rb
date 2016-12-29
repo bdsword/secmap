@@ -51,24 +51,6 @@ class CassandraDocker < DockerWrapper
 end
 
 if  __FILE__ == $0
-	if ARGV.length != 1
-		puts "usage: #{__FILE__} init/start/stop/status"
-		exit
-	end
 	c = CassandraDocker.new
-	case ARGV[0]
-	when 'init'
-		c.getImage
-		c.createContainer
-	when 'start'
-		c.startContainer
-		`echo docker > #{__dir__}../storage/cassandra.pid`
-	when 'stop'
-		c.stopContainer
-		`rm #{__dir__}../storage/cassandra.pid`
-	when 'status'
-		puts "running ? " + c.infoContainer["State"]["Running"].to_s
-	else
-		puts "usage: #{__FILE__} init/start/stop/status"
-	end
+	c.main(__dir__+'/../storage/cassandra.pid')
 end

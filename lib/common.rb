@@ -11,6 +11,7 @@ require secconfpath
 
 LIB_HOME="#{ENV['SECMAP_HOME']}/lib"
 LOG_HOME="#{ENV['SECMAP_HOME']}/logs"
+DATA_HOME="#{ENV['SECMAP_HOME']}/storage/cassandra_data"
 
 #REDIS_PORT      	= 6379
 #REDIS_ADDR 			= "192.168.100.109"

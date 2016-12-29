@@ -11,12 +11,12 @@ $pidLocation = {
 }
 
 $starttable = {    
-	"cassandra" => "#{ENV['SECMAP_HOME']}/storage/cassandra/bin/cassandra -p #{ENV['SECMAP_HOME']}/storage/cassandra.pid", 
+	"cassandra" => "#{ENV['SECMAP_HOME']}/lib/cassandraDocker.rb start", 
 	"redis" => "cd #{ENV['SECMAP_HOME']}/storage/redis-2.2.1/src &&  make && ./redis-server #{ENV['SECMAP_HOME']}/conf/redis.conf && cd #{ENV['SECMAP_HOME']}/storage/ && ./redis_init.rb" ,
 	"server" => "cd #{ENV['SECMAP_HOME']}/input/server &&  ./server.rb" 
 }
 $stoptable = {
-	"cassandra" => "kill -9 `cat #{ENV['SECMAP_HOME']}/storage/cassandra.pid` ; rm -f #{ENV['SECMAP_HOME']}/storage/cassandra.pid",
+	"cassandra" => "#{ENV['SECMAP_HOME']}/lib/cassandraDocker.rb stop",
    	"redis" => "kill -9 `cat #{ENV['SECMAP_HOME']}/storage/redis-2.2.1/src/redis.pid` ; rm -f #{ENV['SECMAP_HOME']}/storage/redis-2.2.1/src/redis.pid" ,
 	"server" =>"kill -9 `cat #{ENV['SECMAP_HOME']}/input/server/server.pid` ; rm -f #{ENV['SECMAP_HOME']}/input/server/server.pid" 
 }

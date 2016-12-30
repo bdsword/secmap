@@ -31,7 +31,6 @@ rescue
 		puts "redis is off now!!Please start it first."
 		exit 1
 	end
-
 end
 
 if( !File.exist?(LOG_HOME) )
@@ -41,7 +40,6 @@ end
 if( !File.exist?(DATA_HOME) )
 	`mkdir -p #{DATA_HOME}`
 end
-
 
 $commands = {
 }
@@ -55,25 +53,10 @@ def errorHandler(type)
 	end
 end
 
-
 # $commands HashTable for [putTo|getFrom][Cassandra|Redis]
 def updateCommandTable()
 #We should add checkVersion() later
 end
-
-#def loadRedisValue()
-#	redis = Redis.new(:host=>"192.168.100.109",:port=>6379)
-#	REDIS_PORT          = redis['REDIS_PORT']
-#	REDIS_ADDR          = redis['REDIS_ADDR']
-#	KEYSPACE        = redis['KEYSPACE']
-#	CASSANDRA       = []
-#	redis['CASSANDRA'].split(/ /).map{ |s|  CASSANDRA << s}
-#	ANALYZERS       = []
-#	redis['ANALYZERS'].split(/ /).map{ |s| ANALYZERS << s}
-#	CASSANDRAPORT   = redis['CASSANDRAPORT']
-#	CLEAN_UP_TIME     = redis['CLEAN_UP_TIME'] # 7 mins for clean up time
-#	FORCE_QUIT_TIME   = redis['FORCE_QUIT_TIME'] # 10 mins force kill analyzes
-#end
 
 # Find all *.rb from ENV['SECMAP_HOME']/lib and add to $commands
 def loadCommandTable()
@@ -93,8 +76,6 @@ def generateSecmapUID( filename )
     id << File.size?(filename).to_s
     return id
 end
-
-
 
 #property loader for linux-like config
 class PropertyLoader

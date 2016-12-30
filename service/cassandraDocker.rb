@@ -2,7 +2,7 @@
 
 require 'sys/filesystem'
 require 'socket'
-require __dir__+'/../lib/common.rb'
+require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/../lib/docker.rb'
 
 class CassandraDocker < DockerWrapper
@@ -27,7 +27,7 @@ class CassandraDocker < DockerWrapper
 		  'ENV' => [
 		    "CASSANDRA_CLUSTER_NAME='SECMAP Cluster'",
 		    "CASSANDRA_NUM_TOKENS=#{tokens}",
-		    #"CASSANDRA_SEEDS=192.168.100.1,192.168.100.3",
+		    #"CASSANDRA_SEEDS=#{CASSANDRA * ' '}",
 		    "CASSANDRA_BROADCAST_ADDRESS=#{hostIP}"
 		  ],
 		  'HostConfig' => {

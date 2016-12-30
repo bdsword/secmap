@@ -1,4 +1,2 @@
-storage/cassandra.pid
-storage/redis.pid
-storage/cassandra_data/*
-FailLog
+logs/*
+storage/*

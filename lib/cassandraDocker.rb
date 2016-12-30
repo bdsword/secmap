@@ -10,13 +10,7 @@ class CassandraDocker < DockerWrapper
 	def initialize
 		@dockername = "secmap-cassandra"
 		@dockerimage = "cassandra:3.9"
-	end
 
-	def createContainer
-		if checkContainer
-			puts "container #{@dockername} already exist"
-			return
-		end
 		tokens = (Sys::Filesystem.stat('/').block_size * Sys::Filesystem.stat('/').blocks_available / 1024.0 / 1024.0 / 1024.0 / 1024.0 * 256).to_i
 		hostIP = nil
 		Socket.ip_address_list.each do |ip|
@@ -25,7 +19,8 @@ class CassandraDocker < DockerWrapper
 				break
 			end
 		end
-		res = Docker::Container.create(
+
+		@createOptions = {
 		  'Image' => @dockerimage,
 		  'name' => @dockername,
 		  'Volumes' => { '/var/lib/cassandra' => {} },
@@ -45,8 +40,7 @@ class CassandraDocker < DockerWrapper
 		      '9160/tcp' => [{ 'HostPort' => '9160' }]
 		    }
 		  }
-		)
-		puts res
+		}
 	end
 end
 

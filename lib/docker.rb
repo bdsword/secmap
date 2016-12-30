@@ -7,6 +7,7 @@ class DockerWrapper
 	def initialize
 		@dockername = nil
 		@dockerimage = nil
+		@createOptions = {'Image' => @dockerimage, 'name' => @dockername}
 	end
 
 	def getImage
@@ -37,10 +38,7 @@ class DockerWrapper
 			puts "container #{@dockername} already exist"
 			return
 		end
-		res = Docker::Container.create(
-		  'Image' => @dockerimage,
-		  'name' => @dockername
-		)
+		res = Docker::Container.create(@createOptions)
 		puts res
 	end
 

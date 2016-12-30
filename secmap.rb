@@ -6,18 +6,18 @@ load 'common.rb'
 
 $pidLocation = {
 	"cassandra" => "#{ENV['SECMAP_HOME']}/storage/cassandra.pid", 
-	"redis" => "#{ENV['SECMAP_HOME']}/storage/redis-2.2.1/src/redis.pid" ,
+	"redis" => "#{ENV['SECMAP_HOME']}/storage/redis.pid" ,
 	"server" => "#{ENV['SECMAP_HOME']}/input/server/server.pid"
 }
 
 $starttable = {    
 	"cassandra" => "#{ENV['SECMAP_HOME']}/lib/cassandraDocker.rb start", 
-	"redis" => "cd #{ENV['SECMAP_HOME']}/storage/redis-2.2.1/src &&  make && ./redis-server #{ENV['SECMAP_HOME']}/conf/redis.conf && cd #{ENV['SECMAP_HOME']}/storage/ && ./redis_init.rb" ,
+	"redis" => "#{ENV['SECMAP_HOME']}/lib/redisDocker.rb start && #{ENV['SECMAP_HOME']}/lib/redisCli.rb init" ,
 	"server" => "cd #{ENV['SECMAP_HOME']}/input/server &&  ./server.rb" 
 }
 $stoptable = {
 	"cassandra" => "#{ENV['SECMAP_HOME']}/lib/cassandraDocker.rb stop",
-   	"redis" => "kill -9 `cat #{ENV['SECMAP_HOME']}/storage/redis-2.2.1/src/redis.pid` ; rm -f #{ENV['SECMAP_HOME']}/storage/redis-2.2.1/src/redis.pid" ,
+   	"redis" => "#{ENV['SECMAP_HOME']}/lib/cassandraDocker.rb stop" ,
 	"server" =>"kill -9 `cat #{ENV['SECMAP_HOME']}/input/server/server.pid` ; rm -f #{ENV['SECMAP_HOME']}/input/server/server.pid" 
 }
 #----------------------------------------
@@ -86,21 +86,20 @@ def getlist
 end
 
 def isrun(service)
-	i=0
-	while i<service.size() do
-		if File::exists?( "#{$pidLocation[service[i]]}" ) then
-			pid = `cat #{$pidLocation[service[i]]}`
-			pid = pid[0..-2]
-			query =`ps -p #{pid} | grep #{pid}`
-			if( query != "" )
-				puts "#{$pidLocation[service[i]]} is exist and \n#{query}"
-			else
-				puts "#{$pidLocation[service[i]]} might be dead pid:#{pid}"
-				`rm -f #{$pidLocation[service[i]]}`
-			end
+	if File::exists?( "#{$pidLocation[service]}" ) then
+		pid = `cat #{$pidLocation[service]}`
+		if pid == 'docker'
 			return true
 		end
-		i+=1
+		pid = pid[0..-2]
+		query =`ps -p #{pid} | grep #{pid}`
+		if( query != "" )
+			puts "#{$pidLocation[service]} is exist and \n#{query}"
+		else
+			puts "#{$pidLocation[service]} might be dead pid:#{pid}"
+			`rm -f #{$pidLocation[service]}`
+		end
+		return true
 	end
 	return false
 end
@@ -146,7 +145,7 @@ if ARGV[0] == "start" then
    #     end
    # end
 
-	if(!isrun(list ) ||  defined? startForce ) then
+	if(!isrun([ARGV[1]]) ||  defined? startForce ) then
 	    starton(list)
 	else
 	    list

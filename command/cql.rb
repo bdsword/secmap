@@ -2,8 +2,9 @@
 
 require 'cassandra'
 require __dir__+'/../conf/secmap_conf.rb'
+require LIB_HOME+'/command.rb'
 
-class Cql
+class Cql < Command
 	def initialize(ip=['127.0.0.1'])
 		@cluster = Cassandra.cluster(host: ip)
 		@session = @cluster.connect

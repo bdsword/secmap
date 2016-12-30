@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'docker'
+require __dir__+'/command.rb'
 
-class DockerWrapper
+class DockerWrapper < Command
 
 	def initialize
 		@dockername = nil

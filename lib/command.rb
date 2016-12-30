@@ -3,7 +3,8 @@
 class Command
 
 	def initialize
-		@commandTable={}
+		@commandTable = nil
+		@prefix = nil
 	end
 
 	def help

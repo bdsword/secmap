@@ -2,8 +2,9 @@
 
 require 'redis'
 require __dir__+'/../conf/secmap_conf.rb'
+require LIB_HOME+'/command.rb'
 
-class RedisCli
+class RedisCli < Command
 	def initialize
 		begin
 			@r = Redis.new(:host => REDIS_ADDR, :port => REDIS_PORT)

@@ -1,3 +1,0 @@
-TYPE=CLAMAV
-LOG=CLAMAV.log
-COMMAND=clamav.rb

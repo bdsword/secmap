@@ -17,7 +17,7 @@ $starttable = {
 }
 $stoptable = {
 	"cassandra" => "#{ENV['SECMAP_HOME']}/lib/cassandraDocker.rb stop",
-   	"redis" => "#{ENV['SECMAP_HOME']}/lib/cassandraDocker.rb stop" ,
+   	"redis" => "#{ENV['SECMAP_HOME']}/lib/redisDocker.rb stop" ,
 	"server" =>"kill -9 `cat #{ENV['SECMAP_HOME']}/input/server/server.pid` ; rm -f #{ENV['SECMAP_HOME']}/input/server/server.pid" 
 }
 #----------------------------------------
@@ -120,13 +120,9 @@ def starton (runlist)
    end
 end
 
-def stop (stoplist)
-   i = 0
-   while i<stoplist.size() do
-      puts $stoptable[stoplist[i]]
-		`#{$stoptable[stoplist[i]]}`
-      i+=1
-   end	
+def stop (service)
+	puts $stoptable[service]
+	`#{$stoptable[service]}`
 end
 #---------------function end-------------------------
 
@@ -153,7 +149,7 @@ if ARGV[0] == "start" then
 	end
 
 elsif ARGV[0] == "stop" then
-   stop(getlist())
+   stop(ARGV[1])
 else
    rolelist
 end

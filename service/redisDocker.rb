@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require __dir__+'/docker.rb'
+require __dir__+'/../lib/docker.rb'
 
 class RedisDocker < DockerWrapper
 

@@ -2,8 +2,8 @@
 
 require 'sys/filesystem'
 require 'socket'
-require __dir__+'/common.rb'
-require __dir__+'/docker.rb'
+require __dir__+'/../lib/common.rb'
+require __dir__+'/../lib/docker.rb'
 
 class CassandraDocker < DockerWrapper
 

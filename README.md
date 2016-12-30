@@ -8,10 +8,6 @@
   >
   > $ vim conf/secmap_conf.rb
   
-  > $ cp storage/redis_init.example.rb storage/redis_init.rb
-  >
-  > $ vim storage/redis_init.rb
-
 3. Start the redia/cassandra service for the nodes.
   > $ ./secmap.rb start redis
   >

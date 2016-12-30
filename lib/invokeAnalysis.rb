@@ -1,18 +1,13 @@
 #!/usr/bin/env ruby
 # invokeAnalysis( command , filename)==>bool timeout
 # safe invoke analyzers by resource limit
-require 'pathname'
-requirepath = Pathname.new(__FILE__).dirname.realpath+"../lib/common.rb"
-load requirepath
+require __dir__+'/common.rb'
 
 command = ARGV * " "
 filename = ARGV[-1]
 
-
 puts "XXXX" + command
 
-
-timeout = false
 startTime = Time.new
 Signal.trap("SIGXCPU") do
 	`echo "[#{Time.now.to_s}] invokeAnalysis:#{filename} [TIMEOUT]" >> #{LOG_HOME}/analysis.log `
@@ -29,5 +24,3 @@ end
 
 endTime = Time.new
 `echo "[#{Time.now.to_s}] #{filename} takes [#{endTime-startTime}]" >>#{LOG_HOME}/analysis.log`
-
-

@@ -41,29 +41,12 @@ if( !File.exist?(DATA_HOME) )
 	`mkdir -p #{DATA_HOME}`
 end
 
-$commands = {
-}
-
 #Error Handle
 def errorHandler(type)
 	case type
 		when "TaskUIDIsEmpty"
 			sleep(5)
 		else
-	end
-end
-
-# $commands HashTable for [putTo|getFrom][Cassandra|Redis]
-def updateCommandTable()
-#We should add checkVersion() later
-end
-
-# Find all *.rb from ENV['SECMAP_HOME']/lib and add to $commands
-def loadCommandTable()
-	updateCommandTable()
-	rbList = `ls #{LIB_HOME} | grep .rb `.split(/\n/)
-	rbList.each do | command |
-		$commands[command[0..-4]] = "#{LIB_HOME}/#{command[0..-1]}"
 	end
 end
 

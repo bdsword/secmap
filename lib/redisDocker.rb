@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require __dir__+'/common.rb'
 require __dir__+'/docker.rb'
 
 class RedisDocker < DockerWrapper
@@ -12,7 +11,7 @@ class RedisDocker < DockerWrapper
 		@createOptions = {
 		  'Image' => @dockerimage,
 		  'name' => @dockername,
-		  'Volumes' => { '/usr/local/etc/redis/redis.conf' => {} },
+		  #'Volumes' => { '/usr/local/etc/redis/' => {} },
 		  'HostConfig' => {
 		    #'Binds' => [":/usr/local/etc/redis/redis.conf"],
 		    'PortBindings' => {

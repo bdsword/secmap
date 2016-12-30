@@ -6,35 +6,24 @@ require 'find'
 require 'digest/md5'
 require 'digest/sha1'
 require 'redis'
-secconfpath = Pathname.new(__FILE__).dirname.realpath + "../conf/secmap_conf.rb"
-require secconfpath
+require __dir__+'/../conf/secmap_conf.rb'
 
 LIB_HOME="#{ENV['SECMAP_HOME']}/lib"
 LOG_HOME="#{ENV['SECMAP_HOME']}/logs"
 DATA_HOME="#{ENV['SECMAP_HOME']}/storage/cassandra_data"
 
-#REDIS_PORT      	= 6379
-#REDIS_ADDR 			= "192.168.100.109"
-#KEYSPACE       	= "SECMAP"
-#CASSANDRA      	= ["192.168.100.101", "192.168.100.102", "192.168.100.103", "192.168.100.104"]
-#CASSANDRA      	= ["192.168.100.101"]
-#ANALYZERS      	= ["MBA", "CLAMAV"]
-#CASSANDRAPORT  	= "9160"
-#CLEAN_UP_TIME     = 420 # 7 mins for clean up time
-#FORCE_QUIT_TIME   = 600 # 10 mins force kill analyzer
-redis = Redis.new(:host=>"127.0.0.1",:port=>6379)
+redis = Redis.new(:host=>REDIS_ADDR, :port=>REDIS_PORT)
+
 begin
-REDIS_PORT          = redis['REDIS_PORT']
-REDIS_ADDR          = redis['REDIS_ADDR']
-KEYSPACE        = redis['KEYSPACE']
-CASSANDRA       = []
-redis['CASSANDRA'].split(/ /).map{ |s|  CASSANDRA << s}
-ANALYZERS       = []
-redis['ANALYZERS'].split(/ /).map{ |s| ANALYZERS << s}
-CASSANDRAPORT   = redis['CASSANDRAPORT']
-CLEAN_UP_TIME     = redis['CLEAN_UP_TIME'] # 7 mins for clean up time
-FORCE_QUIT_TIME   = redis['FORCE_QUIT_TIME'] # 10 mins force kill analyzes
-redis.quit
+	KEYSPACE        = redis['KEYSPACE']
+	CASSANDRA       = []
+	redis['CASSANDRA'].split(/ /).map{ |s|  CASSANDRA << s}
+	ANALYZERS       = []
+	redis['ANALYZERS'].split(/ /).map{ |s| ANALYZERS << s}
+	CASSANDRAPORT   = redis['CASSANDRAPORT']
+	CLEAN_UP_TIME     = redis['CLEAN_UP_TIME'] # 7 mins for clean up time
+	FORCE_QUIT_TIME   = redis['FORCE_QUIT_TIME'] # 10 mins force kill analyzes
+	redis.quit
 rescue
 	if (ARGV.index("redis") || ARGV.index("-r"))
 		#do nothing
@@ -47,6 +36,10 @@ end
 
 if( !File.exist?(LOG_HOME) )
 	`mkdir -p #{LOG_HOME}`
+end
+
+if( !File.exist?(DATA_HOME) )
+	`mkdir -p #{DATA_HOME}`
 end
 
 
@@ -99,7 +92,6 @@ def generateSecmapUID( filename )
     #puts File.size?(filename).to_s
     id << File.size?(filename).to_s
     return id
-
 end
 
 
@@ -144,5 +136,4 @@ class PropertyLoader
 	   properties_file.truncate(properties_file.pos)
         end
    end
-
 end

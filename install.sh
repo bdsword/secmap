@@ -6,3 +6,6 @@ gem install redis -v 3.3.2
 gem install cassandra-driver -v 3.1.0
 gem install docker-api -v 1.33.1
 gem install sys-filesystem -v 1.1.7
+
+./lib/cassandraDocker init
+./lib/redisDocker init

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'cassandra'
-require __dir__+'/common.rb'
+require __dir__+'/../conf/secmap_conf.rb'
 
 class Cql
 	def initialize(ip=['127.0.0.1'])
@@ -21,7 +21,7 @@ class Cql
 			create_secmap
 			@session.execute('USE secmap')
 			create_summary
-			ANALYZERS.each do |analyzer|
+			ANALYZER.each do |analyzer|
 				create_analyzer(analyzer)
 			end
 		end
@@ -180,7 +180,7 @@ class Cql
 end
 
 if  __FILE__ == $0
-	c = Cql.new
+	c = Cql.new(:ip => CASSANDRA)
 	c.main
 	c.close
 end

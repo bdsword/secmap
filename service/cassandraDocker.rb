@@ -3,7 +3,8 @@
 require 'sys/filesystem'
 require 'socket'
 require __dir__+'/../conf/secmap_conf.rb'
-require __dir__+'/../lib/docker.rb'
+require LIB_HOME+'/docker.rb'
+require LIB_HOME+'/common.rb'
 
 class CassandraDocker < DockerWrapper
 
@@ -41,6 +42,7 @@ class CassandraDocker < DockerWrapper
 		    }
 		  }
 		}
+		createDataHome
 	end
 end
 

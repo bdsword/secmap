@@ -8,30 +8,7 @@ require 'digest/sha1'
 require 'redis'
 require __dir__+'/../conf/secmap_conf.rb'
 
-LIB_HOME="#{ENV['SECMAP_HOME']}/lib"
-LOG_HOME="#{ENV['SECMAP_HOME']}/logs"
-DATA_HOME="#{ENV['SECMAP_HOME']}/storage/cassandra_data"
-
 redis = Redis.new(:host=>REDIS_ADDR, :port=>REDIS_PORT)
-
-begin
-	KEYSPACE        = redis['KEYSPACE']
-	CASSANDRA       = []
-	redis['CASSANDRA'].split(/ /).map{ |s|  CASSANDRA << s}
-	ANALYZERS       = []
-	redis['ANALYZERS'].split(/ /).map{ |s| ANALYZERS << s}
-	CASSANDRAPORT   = redis['CASSANDRAPORT']
-	CLEAN_UP_TIME     = redis['CLEAN_UP_TIME'] # 7 mins for clean up time
-	FORCE_QUIT_TIME   = redis['FORCE_QUIT_TIME'] # 10 mins force kill analyzes
-	redis.quit
-rescue
-	if (ARGV.index("redis") || ARGV.index("-r"))
-		#do nothing
-	else
-		puts "redis is off now!!Please start it first."
-		exit 1
-	end
-end
 
 if( !File.exist?(LOG_HOME) )
 	`mkdir -p #{LOG_HOME}`

@@ -1,3 +1,4 @@
 storage/cassandra.pid
 storage/redis-2.2.1/src/redis.pid
 storage/cassandra_data/*
+FailLog

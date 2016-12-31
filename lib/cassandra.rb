@@ -48,7 +48,6 @@ class CassandraWrapper
 	end
 
 	def create_summary
-		puts "create table summary...."
 		table_definition = <<-TABLE_CQL
 		  CREATE TABLE SUMMARY (
 		      taskuid varchar PRIMARY KEY,
@@ -59,7 +58,6 @@ class CassandraWrapper
 	end
 
 	def create_analyzer(analyzer)
-		puts "create table #{analyzer}...."
 		table_definition = <<-TABLE_CQL
 		  CREATE TABLE #{analyzer} (
 		    taskuid varchar PRIMARY KEY,
@@ -71,7 +69,6 @@ class CassandraWrapper
 	end
 
 	def drop_table(table)
-		puts "drop table #{table}...."
 		table_definition = <<-TABLE_CQL
                   DROP TABLE #{table} 
                 TABLE_CQL

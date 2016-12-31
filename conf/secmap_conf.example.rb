@@ -4,10 +4,10 @@
 SECMAP_HOME = "/path/to/secmap"
 
 LIB_HOME = "#{SECMAP_HOME}/lib"
-LOG_HOME = "#{SECMAP_HOME}/logs"
+LOG_HOME = "#{SECMAP_HOME}/log"
 DATA_HOME = "#{SECMAP_HOME}/storage"
 SERVICE_HOME = "#{SECMAP_HOME}/service"
-ANALYZER_HOME = "#{SECMAP_HOME}/analyzers"
+ANALYZER_HOME = "#{SECMAP_HOME}/analyzer"
 
 # Store the IP of the redis node
 # EX: REDIS_ADDR = '192.168.100.100'

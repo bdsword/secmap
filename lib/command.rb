@@ -53,6 +53,7 @@ class Command
 			puts "wrong usage"
 			puts "usage of #{args[0]}:"
 			helpCommand(args[0])
+			exit
 		end
 		send(c['funcName'], *args.drop(1))
 	end

@@ -58,7 +58,6 @@ class Analyzer
 				file.close
 				file.unlink
 			end
-			end
 		end
 	end
 

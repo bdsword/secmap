@@ -38,4 +38,8 @@ class RedisWrapper
 		return @r
 	end
 
+	def get_taskuid(analyzer)
+		return @r.lpop(analyzer)
+	end
+
 end

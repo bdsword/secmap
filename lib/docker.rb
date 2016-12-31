@@ -11,12 +11,12 @@ class DockerWrapper < Command
 		@dockerImage = dockerImage
 		@createOptions = {'Image' => @dockerImage, 'name' => @dockerName}
 
-		@commandTable.append("get", 0, "getImage", "Get #{@dockerImage}.")
-		@commandTable.append("create", 0, "createContainer", "Create #{@dockerName} container from #{@dockerImage}.")
-		@commandTable.append("start", 0, "startContainer", "Start #{@dockerName}.")
-		@commandTable.append("stop", 0, "stopContainer", "Stop #{@dockerName}.")
-		@commandTable.append("restart", 0, "restartContainer", "Retart #{@dockerName}.")
-		@commandTable.append("status", 0, "status", "Show #{@dockerName} status.")
+		@commandTable.append("get", 0, "getImage", ["Get #{@dockerImage}."])
+		@commandTable.append("create", 0, "createContainer", ["Create #{@dockerName} container from #{@dockerImage}."])
+		@commandTable.append("start", 0, "startContainer", ["Start #{@dockerName}."])
+		@commandTable.append("stop", 0, "stopContainer", ["Stop #{@dockerName}."])
+		@commandTable.append("restart", 0, "restartContainer", ["Retart #{@dockerName}."])
+		@commandTable.append("status", 0, "status", ["Show #{@dockerName} status."])
 	end
 
 	def getImage

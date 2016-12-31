@@ -4,9 +4,8 @@ require __dir__+'/../lib/docker.rb'
 
 class RedisDocker < DockerWrapper
 
-	def initialize
-		@dockername = "secmap-redis"
-		@dockerimage = "redis:3.2.6"
+	def initialize(commandName, prefix="")
+		super(commandName, prefix, "secmap-redis", "redis:3.2.6")
 
 		@createOptions = {
 		  'Image' => @dockerimage,
@@ -23,6 +22,6 @@ class RedisDocker < DockerWrapper
 end
 
 if  __FILE__ == $0
-	c = RedisDocker.new
-	c.main(__dir__+'/../storage/redis.pid')
+	c = RedisDocker.new($0)
+	c.main
 end

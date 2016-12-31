@@ -8,9 +8,8 @@ require LIB_HOME+'/common.rb'
 
 class CassandraDocker < DockerWrapper
 
-	def initialize
-		@dockername = "secmap-cassandra"
-		@dockerimage = "cassandra:3.9"
+	def initialize(commandName, prefix="")
+		super(commandName, prefix, "secmap-cassandra", "cassandra:3.9")
 
 		tokens = (Sys::Filesystem.stat('/').block_size * Sys::Filesystem.stat('/').blocks_available / 1024.0 / 1024.0 / 1024.0 / 1024.0 * 256).to_i
 		hostIP = nil
@@ -44,9 +43,10 @@ class CassandraDocker < DockerWrapper
 		}
 		createDataHome
 	end
+
 end
 
 if  __FILE__ == $0
-	c = CassandraDocker.new
-	c.main(__dir__+'/../storage/cassandra.pid')
+	c = CassandraDocker.new($0)
+	c.main
 end

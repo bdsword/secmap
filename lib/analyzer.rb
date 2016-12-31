@@ -20,7 +20,7 @@ class Analyzer
 		taskuid = nil
 		while taskuid == nil
 			@priority.each do |p|
-				taskuid = @redis.get_taskuid("#{@analyzer_name}:#{p}")
+				taskuid = @redis.get_taskuid("#{@analyzer_name}:#{p.to_s}")
 				if taskuid != nil
 					break
 				end
@@ -50,16 +50,14 @@ class Analyzer
 	def do
 		while true
 			file = nil
-			begin
-				taskuid = get_taskuid
-				file = get_file(taskuid)
-				report = analyze(file.path)
-				save_report(taskuid, report)
-			rescue => detail
-				puts detail.backtrace.join("\n")
-			ensure
+			taskuid = get_taskuid
+			file = get_file(taskuid)
+			report = analyze(file.path)
+			save_report(taskuid, report)
+			if file != nil
 				file.close
 				file.unlink
+			end
 			end
 		end
 	end

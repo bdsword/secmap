@@ -88,6 +88,7 @@ class CassandraWrapper
 		taskuid = generateSecmapUID(file)
 		content = File.new(file,'rb').read
 		@session.execute(statement, arguments: [taskuid, content])
+		return taskuid
 	end
 
 	def get_file(taskuid)

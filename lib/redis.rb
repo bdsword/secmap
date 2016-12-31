@@ -42,4 +42,8 @@ class RedisWrapper
 		return @r.lpop(analyzer)
 	end
 
+	def push_taskuid(taskuid, analyzer, priority)
+		@r.rpush("#{analyzer}:#{priority}", taskuid)
+	end
+
 end

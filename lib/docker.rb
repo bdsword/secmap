@@ -79,8 +79,8 @@ class DockerWrapper < Command
 	end
 
 	def restartContainer
-		startContainer
 		stopContainer
+		startContainer
 	end
 
 	def status

@@ -1,16 +1,37 @@
 #!/usr/bin/env ruby
 
 require 'cassandra'
+require 'socket'
 require __dir__+'/../conf/secmap_conf.rb'
 require LIB_HOME+'/command.rb'
+require LIB_HOME+'/common.rb'
 
 class Cql < Command
-	def initialize(ip=['127.0.0.1'])
-		@cluster = Cassandra.cluster(host: ip)
-		@session = @cluster.connect
+	def initialize(ip, commandName, prefix)
+		super(commandName)
+
+		begin
+			@cluster = Cassandra.cluster(host: ip)
+			@session = @cluster.connect
+		rescue Cassandra::Errors::NoHostsAvailable
+			puts "Cannot connect to cassandra cluster host on #{ip.to_s}."
+			exit
+		end
+
 		if @cluster.keyspace('secmap') != nil
 			@session.execute('USE secmap')
 		end
+
+		@commandTable.append("init", 0, "init_cassandra", ["Initialize cassandra keyspace and table."])
+		@commandTable.append("createSecmap", 0, "create_secmap", ["Create keyspace secmap."])
+		@commandTable.append("addSummary", 0, "create_summary", ["Create table secmap.summary."])
+		@commandTable.append("addTable", 1, "create_analyzer", ["Create table of analyzer.", "Usage: addTable <table name>"])
+		@commandTable.append("dropTable", 1, "drop_table", ["Drop table.", "Usage: dropTable <table name>"])
+		@commandTable.append("getTable", 0, "list_tables", ["Show all tables."])
+		@commandTable.append("addFile", 1, "insert_file", ["Insert a file to secmap.summary.", "Usage: addFile <file path>"])
+		@commandTable.append("getFile", 1, "get_file", ["Get file content from cassandra by taskuid.", "Usage: getFile <taskuid>"])
+		@commandTable.append("addReport", 3, "insert_report", ["Insert a report to analyzer table.", "Usage: addReport <taskuid> <report file path> <analyzer>"])
+		@commandTable.append("getReport", 2, "get_report", ["Get a report by taskuid and the name of analyzer.", "Usage: getReport <taskuid> <analyzer>"])
 	end
 
 	def available_host
@@ -78,9 +99,10 @@ class Cql < Command
 		end
 	end
 
-	def insert_file(taskuid, filepath)
+	def insert_file(file)
 		statement = @session.prepare('INSERT INTO summary (taskuid, content) VALUES (?, ?)')
-		content = File.new(filepath,'rb').read
+		taskuid = generateSecmapUID(file)
+		content = File.new(file,'rb').read
 		@session.execute(statement, arguments: [taskuid, content])
 	end
 
@@ -96,9 +118,11 @@ class Cql < Command
 		return result
 	end
 
-	def insert_report(taskuid, overall, analyzer, analyzer_holder)
+	def insert_report(taskuid, file, analyzer)
+		report = File.new(file, 'r').read
+		host = Socket.gethostname
 		statement = @session.prepare("INSERT INTO #{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
-		@session.execute(statement, arguments: [taskuid, overall, analyzer_holder])
+		@session.execute(statement, arguments: [taskuid, report, "#{ANALYZER_HOME}/#{analyzer}@#{host}"])
 	end
 
 	def get_report(taskuid, analyzer)
@@ -119,69 +143,10 @@ class Cql < Command
 		@cluster.close
 	end
 
-	def main
-		errMsg = "usage: #{__FILE__} init | createSecmap | addSummary | addTable <table name> | dropTable <table name>"\
-			" | getTable | addFile <taskuid> <absolute filepath> | getFile <taskuid> | addReport <taskuid> <absolute report file path> <analyzer> <host>"\
-			" | getReport <taskuid> <analyzer>"
-		if ARGV.length < 1
-			puts errMsg
-			exit
-		end
-		case ARGV[0]
-		when 'init'
-			init_cassandra
-		when 'createSecmap'
-			create_secmap
-		when 'addSummary'
-			create_summary
-		when 'addTable'
-			if ARGV.length != 2
-				puts errMsg
-				exit
-			end
-			create_analyzer(ARGV[1])
-		when 'dropTable'
-			if ARGV.length != 2
-				puts errMsg
-				exit
-			end
-			drop_table(ARGV[1])
-		when 'getTable'
-			list_tables
-		when 'addFile'
-			if ARGV.length != 3
-				puts errMsg
-				exit
-			end
-			insert_file(ARGV[1], ARGV[2])
-		when 'getFile'
-			if ARGV.length != 2
-				puts errMsg
-				exit
-			end
-			get_file(ARGV[1])
-		when 'addReport'
-			if ARGV.length != 5
-				puts errMsg
-				exit
-			end
-			report = File.new(ARGV[2]).read
-			insert_report(ARGV[1], report, ARGV[3], ARGV[4])
-		when 'getReport'
-			if ARGV.length != 3
-				puts errMsg
-				exit
-			end
-			get_report(ARGV[1], ARGV[2])
-		else
-			puts errMsg
-			exit
-		end
-	end
 end
 
 if  __FILE__ == $0
-	c = Cql.new(:ip => CASSANDRA)
+	c = Cql.new(CASSANDRA, $0, "")
 	c.main
 	c.close
 end

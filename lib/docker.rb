@@ -5,29 +5,37 @@ require __dir__+'/command.rb'
 
 class DockerWrapper < Command
 
-	def initialize
-		@dockername = nil
-		@dockerimage = nil
-		@createOptions = {'Image' => @dockerimage, 'name' => @dockername}
+	def initialize(commandName="dockerTemplate", prfix="", dockerName, dockerImage)
+		super(commandName, prfix)
+		@dockerName = dockerName
+		@dockerImage = dockerImage
+		@createOptions = {'Image' => @dockerImage, 'name' => @dockerName}
+
+		@commandTable.append("get", 0, "getImage", "Get #{@dockerImage}.")
+		@commandTable.append("create", 0, "createContainer", "Create #{@dockerName} container from #{@dockerImage}.")
+		@commandTable.append("start", 0, "startContainer", "Start #{@dockerName}.")
+		@commandTable.append("stop", 0, "stopContainer", "Stop #{@dockerName}.")
+		@commandTable.append("restart", 0, "restartContainer", "Retart #{@dockerName}.")
+		@commandTable.append("status", 0, "status", "Show #{@dockerName} status.")
 	end
 
 	def getImage
 		if checkImage
-			puts "#{@dockerimage} already exist"
+			puts "#{@dockerImage} already exist"
 			return
 		end
-		image = Docker::Image.create('fromImage' => @dockerimage)
+		image = Docker::Image.create('fromImage' => @dockerImage)
 		puts image
 	end
 
 	def checkImage
-		return Docker::Image.exist?(@dockerimage)
+		return Docker::Image.exist?(@dockerImage)
 	end
 
 	def checkContainer
 		exist = true
 		begin
-			Docker::Container.get(@dockername)
+			Docker::Container.get(@dockerName)
 		rescue Docker::Error::NotFoundError
 			exist = false
 		end
@@ -36,7 +44,7 @@ class DockerWrapper < Command
 
 	def createContainer
 		if checkContainer
-			puts "container #{@dockername} already exist"
+			puts "container #{@dockerName} already exist"
 			return
 		end
 		res = Docker::Container.create(@createOptions)
@@ -45,38 +53,47 @@ class DockerWrapper < Command
 
 	def startContainer
 		if infoContainer["State"]["Running"]
-			puts "#{@dockername} is already running."
+			puts "#{@dockerName} is already running."
 			return
 		end
 		begin
-			container = Docker::Container.get(@dockername)
+			container = Docker::Container.get(@dockerName)
 			container.start
 		rescue Docker::Error::NotFoundError
-			puts "#{@dockername} container not create yet."
+			puts "#{@dockerName} container not create yet."
 		end
 	end
 
 	def stopContainer
 		if !infoContainer["State"]["Running"]
-			puts "#{@dockername} has been stopped."
+			puts "#{@dockerName} has been stopped."
 			return
 		end
 		begin
-			container = Docker::Container.get(@dockername)
+			container = Docker::Container.get(@dockerName)
 			container.kill
 			container.stop
 		rescue Docker::Error::NotFoundError
-			puts "#{@dockername} container not create yet."
+			puts "#{@dockerName} container not create yet."
 		end
+	end
+
+	def restartContainer
+		startContainer
+		stopContainer
+	end
+
+	def status
+		puts "Running ? #{infoContainer["State"]["Running"].to_s}"
 	end
 
 	def statsContainer
 		stats = nil
 		begin
-			container = Docker::Container.get(@dockername)
+			container = Docker::Container.get(@dockerName)
 			stats = container.stats
 		rescue Docker::Error::NotFoundError
-			puts "#{@dockername} container not create yet."
+			puts "#{@dockerName} container not create yet."
 		end
 		return stats
 	end
@@ -84,44 +101,12 @@ class DockerWrapper < Command
 	def infoContainer
 		info = nil
 		begin
-			container = Docker::Container.get(@dockername)
+			container = Docker::Container.get(@dockerName)
 			info = container.json
 		rescue Docker::Error::NotFoundError
-			puts "#{@dockername} container not create yet."
+			puts "#{@dockerName} container not create yet."
 		end
 		return info
 	end
 
-	def main(pidfile=nil)
-		errMsg = "usage: #{__FILE__} init/start/stop/status"
-		if ARGV.length != 1
-			puts errMsg
-			exit
-		end
-		case ARGV[0]
-		when 'init'
-			getImage
-			createContainer
-		when 'start'
-			startContainer
-			if pidfile != nil
-				`echo docker > #{pidfile}`
-			end
-		when 'stop'
-			stopContainer
-			if pidfile != nil
-				`rm #{pidfile}`
-			end
-		when 'restart'
-			stopContainer
-			startContainer
-			if pidfile != nil
-				`echo docker > #{pidfile}`
-			end
-		when 'status'
-			puts "running ? " + infoContainer["State"]["Running"].to_s
-		else
-			puts errMsg
-		end
-	end
 end

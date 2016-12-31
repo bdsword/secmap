@@ -94,11 +94,12 @@ class CassandraWrapper
 	def get_file(taskuid)
 		statement = @session.prepare("SELECT * FROM summary WHERE taskuid = ? ")
 		rows = @session.execute(statement, arguments: [taskuid])
-		return rows[0]
+		rows.each do |row|
+			return row
+		end
 	end
 
-	def insert_report(taskuid, file, analyzer)
-		report = File.new(file, 'r').read
+	def insert_report(taskuid, report, analyzer)
 		host = Socket.gethostname
 		statement = @session.prepare("INSERT INTO #{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
 		@session.execute(statement, arguments: [taskuid, report, "#{ANALYZER_HOME}/#{analyzer}@#{host}"])
@@ -107,7 +108,9 @@ class CassandraWrapper
 	def get_report(taskuid, analyzer)
 		statement = @session.prepare("SELECT * FROM #{analyzer} WHERE taskuid = ?")
 		rows = @session.execute(statement, arguments: [taskuid])
-		return rows[0]
+		rows.each do |row|
+			return row
+		end
 	end
 
 	def close

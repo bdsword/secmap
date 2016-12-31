@@ -37,7 +37,6 @@ class CassandraWrapper
 	end
 
 	def create_secmap
-		puts "create keyspace secmap...."
 		secmap_definition = <<-KEYSPACE_CQL
 		  CREATE KEYSPACE secmap
 		  WITH replication = {
@@ -80,9 +79,11 @@ class CassandraWrapper
 	end
 
 	def list_tables
+		tables = []
 		@cluster.keyspace('secmap').each_table do |table|
-			puts table.name
+			tables.push(table.name)
 		end
+		return tables
 	end
 
 	def insert_file(file)
@@ -95,13 +96,7 @@ class CassandraWrapper
 	def get_file(taskuid)
 		statement = @session.prepare("SELECT * FROM summary WHERE taskuid = ? ")
 		rows = @session.execute(statement, arguments: [taskuid])
-		result = nil
-		rows.each do |row|
-			puts row['taskuid']
-			puts row['content']
-			result = row
-		end
-		return result
+		return rows[0]
 	end
 
 	def insert_report(taskuid, file, analyzer)
@@ -114,14 +109,7 @@ class CassandraWrapper
 	def get_report(taskuid, analyzer)
 		statement = @session.prepare("SELECT * FROM #{analyzer} WHERE taskuid = ?")
 		rows = @session.execute(statement, arguments: [taskuid])
-		result = nil
-		rows.each do |row|
-			puts row['taskuid']
-			puts row['overall']
-			puts row['analyzer']
-			result = row
-		end
-		return result
+		return rows[0]
 	end
 
 	def close

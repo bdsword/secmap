@@ -38,34 +38,34 @@ class CassandraCli < Command
 	def create_secmap
 		puts "Create keyspace secmap...."
 		c = CassandraWrapper.new(@ip)
-        c.create_secmap
+		c.create_secmap
 		c.close
 	end
 
 	def create_summary
 		puts "Create table summary...."
 		c = CassandraWrapper.new(@ip)
-        c.create_summary
+		c.create_summary
 		c.close
 	end
 
 	def create_analyzer(analyzer)
 		puts "Create table #{analyzer}...."
 		c = CassandraWrapper.new(@ip)
-        c.create_analyzer(analyzer)
+		c.create_analyzer(analyzer)
 		c.close
 	end
 
 	def drop_table(table)
 		puts "drop table #{table}...."
 		c = CassandraWrapper.new(@ip)
-        c.drop_table(table)
+		c.drop_table(table)
 		c.close
 	end
 
 	def list_tables
 		c = CassandraWrapper.new(@ip)
-        c.list_tables.each do |table|
+		c.list_tables.each do |table|
 			puts table
 		end
 		c.close
@@ -73,20 +73,21 @@ class CassandraCli < Command
 
 	def insert_file(file)
 		c = CassandraWrapper.new(@ip)
-        c.insert_file(file)
+		c.insert_file(file)
 		c.close
 	end
 
 	def get_file(taskuid)
 		c = CassandraWrapper.new(@ip)
-        result = c.get_file(taskuid)
+		result = c.get_file(taskuid)
 		puts result['content']
 		c.close
 	end
 
 	def insert_report(taskuid, file, analyzer)
+		report = File.new(file, 'r').read
 		c = CassandraWrapper.new(@ip)
-        c.insert_report(taskuid, file, analyzer)
+		c.insert_report(taskuid, report, analyzer)
 		c.close
 	end
 

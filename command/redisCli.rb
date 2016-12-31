@@ -5,12 +5,18 @@ require __dir__+'/../conf/secmap_conf.rb'
 require LIB_HOME+'/command.rb'
 
 class RedisCli < Command
-	def initialize
+
+	def initialize(commandName, prefix)
+		super(commandName, prefix)
+
 		begin
 			@r = Redis.new(:host => REDIS_ADDR, :port => REDIS_PORT)
 		rescue
 			puts "redis server #{REDIS_ADDR} is not available."
 		end
+
+		@commandTable.append("init", 0, "initRedis", ["Initialize redis data."])
+		@commandTable.append("status", 0, "status", ["Show redis status."])
 	end
 
 	def initRedis
@@ -34,22 +40,9 @@ class RedisCli < Command
 		return @r
 	end
 
-	def main
-		errMsg = "usage: #{__FILE__} init | status"
-		if ARGV.length != 1
-			puts errMsg
-		end
-		case ARGV[0]
-		when 'init'
-			puts 'initializing...'
-			initRedis
-		when 'status'
-			puts 'running ? ' + status.to_s
-		end
-	end
 end
 
 if __FILE__ == $0
-	r = RedisCli.new
+	r = RedisCli.new($0, "")
 	r.main
 end

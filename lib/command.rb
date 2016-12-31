@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
-
 class Command
 
 	class CommandTable

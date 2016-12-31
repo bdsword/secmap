@@ -12,7 +12,7 @@ class Analyzer
 		@analyzer_name
 		@sleep_seconds = 5
 
-		@redis = RedisWarapper.new
+		@redis = RedisWrapper.new
 		@cassandra = CassandraWrapper.new(CASSANDRA)
 	end
 
@@ -21,7 +21,7 @@ class Analyzer
 		while taskuid == nil
 			@priority.each do |p|
 				taskuid = @redis.get_taskuid("#{@analyzer_name}:#{p}")
-				if taskiod != nil
+				if taskuid != nil
 					break
 				end
 			end
@@ -49,13 +49,14 @@ class Analyzer
 
 	def do
 		while true
+			file = nil
 			begin
 				taskuid = get_taskuid
 				file = get_file(taskuid)
 				report = analyze(file.path)
 				save_report(taskuid, report)
-			rescue Exception
-				puts Exception
+			rescue => detail
+				puts detail.backtrace.join("\n")
 			ensure
 				file.close
 				file.unlink

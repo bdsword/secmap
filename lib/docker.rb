@@ -5,27 +5,53 @@ require __dir__+'/command.rb'
 
 class DockerWrapper < Command
 
-	def initialize(commandName="dockerTemplate", prfix="", dockerName, dockerImage)
+	def initialize(commandName="dockerTemplate", prfix="", dockerName, dockerImage, buildDir)
 		super(commandName, prfix)
 		@dockerName = dockerName
 		@dockerImage = dockerImage
+		@buildDir = buildDir
 		@createOptions = {'Image' => @dockerImage, 'name' => @dockerName}
 
-		@commandTable.append("get", 0, "getImage", ["Get #{@dockerImage}."])
+		@commandTable.append("pull", 0, "pullImage", ["Pull image #{@dockerImage}."])
+		@commandTable.append("build", 0, "buildImage", ["Build #{@dockerImage} by Dockerfile."])
+		@commandTable.append("rmi", 0, "removeImage", ["Remove image #{@dockerImage}."])
 		@commandTable.append("create", 0, "createContainer", ["Create #{@dockerName} container from #{@dockerImage}."])
+		@commandTable.append("rm", 0, "removeContainer", ["Remove #{@dockerName} container."])
 		@commandTable.append("start", 0, "startContainer", ["Start #{@dockerName}."])
 		@commandTable.append("stop", 0, "stopContainer", ["Stop #{@dockerName}."])
 		@commandTable.append("restart", 0, "restartContainer", ["Retart #{@dockerName}."])
 		@commandTable.append("status", 0, "status", ["Show #{@dockerName} status."])
 	end
 
-	def getImage
+	def pullImage
 		if checkImage
-			puts "#{@dockerImage} already exist"
+			puts "#{@dockerImage} already exist."
 			return
 		end
 		image = Docker::Image.create('fromImage' => @dockerImage)
 		puts image
+	end
+
+	def buildImage
+		if checkImage
+			puts "#{@dockerImage} already exist."
+			return
+		end
+		if File.exist?(@buildDir+'/Dockerfile')
+			image = Docker::Image.build_from_dir(@buildDir)
+			image.tag('repo' => @dockerImage.split(':')[0], 'tag' => @dockerImage.split(':')[1], force: true)
+		else
+			puts "Dockerfile of #{@dockerImage} not found."
+		end
+	end
+
+	def removeImage
+		if checkImage
+            puts "#{@dockerImage} already exist."
+            return
+        end
+		image = Docker::Image.get(@dockerImage)
+		image.remove(:force => true)
 	end
 
 	def checkImage
@@ -44,11 +70,20 @@ class DockerWrapper < Command
 
 	def createContainer
 		if checkContainer
-			puts "container #{@dockerName} already exist"
+			puts "Container #{@dockerName} already exist."
 			return
 		end
 		res = Docker::Container.create(@createOptions)
 		puts res
+	end
+
+	def removeContainer
+		if checkContainer
+            puts "Container #{@dockerName} already exist."
+            return
+        end
+		container = Docker::Container.get(@dockerName)
+		container.delete(:force => true)
 	end
 
 	def startContainer

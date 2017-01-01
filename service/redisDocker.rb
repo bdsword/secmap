@@ -22,6 +22,5 @@ class RedisDocker < DockerWrapper
 end
 
 if  __FILE__ == $0
-	c = RedisDocker.new($0)
-	c.main
+	RedisDocker.new($0).main
 end

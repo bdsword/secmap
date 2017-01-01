@@ -47,6 +47,5 @@ class CassandraDocker < DockerWrapper
 end
 
 if  __FILE__ == $0
-	c = CassandraDocker.new($0)
-	c.main
+	CassandraDocker.new($0).main
 end

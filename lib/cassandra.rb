@@ -9,7 +9,7 @@ class CassandraWrapper
 
 	def initialize(ip)
 		begin
-			@cluster = Cassandra.cluster(host: ip)
+			@cluster = Cassandra.cluster(hosts: ip)
 			@session = @cluster.connect
 		rescue Cassandra::Errors::NoHostsAvailable
 			puts "Cannot connect to cassandra cluster host on #{ip.to_s}."

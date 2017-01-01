@@ -8,8 +8,8 @@ class RedisDocker < DockerWrapper
 		super(commandName, prefix, "secmap-redis", "redis:3.2.6")
 
 		@createOptions = {
-		  'Image' => @dockerimage,
-		  'name' => @dockername,
+		  'Image' => @dockerImage,
+		  'name' => @dockerName,
 		  #'Volumes' => { '/usr/local/etc/redis/' => {} },
 		  'HostConfig' => {
 		    #'Binds' => [":/usr/local/etc/redis/redis.conf"],

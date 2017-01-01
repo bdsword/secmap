@@ -21,8 +21,8 @@ class CassandraDocker < DockerWrapper
 		end
 
 		@createOptions = {
-		  'Image' => @dockerimage,
-		  'name' => @dockername,
+		  'Image' => @dockerImage,
+		  'name' => @dockerName,
 		  'Volumes' => { '/var/lib/cassandra' => {} },
 		  'ENV' => [
 		    "CASSANDRA_CLUSTER_NAME='SECMAP Cluster'",

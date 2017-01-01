@@ -25,7 +25,9 @@ class Analyzer
 					break
 				end
 			end
-			sleep(@sleep_seconds)
+			if taskuid == nil
+				sleep(@sleep_seconds)
+			end
 		end
 		return taskuid
 	end

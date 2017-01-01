@@ -46,8 +46,8 @@ class DockerWrapper < Command
 	end
 
 	def removeImage
-		if checkImage
-            puts "#{@dockerImage} already exist."
+		if !checkImage
+            puts "#{@dockerImage} doesn't exist."
             return
         end
 		image = Docker::Image.get(@dockerImage)
@@ -78,8 +78,8 @@ class DockerWrapper < Command
 	end
 
 	def removeContainer
-		if checkContainer
-            puts "Container #{@dockerName} already exist."
+		if !checkContainer
+            puts "Container #{@dockerName} doesn't exist."
             return
         end
 		container = Docker::Container.get(@dockerName)

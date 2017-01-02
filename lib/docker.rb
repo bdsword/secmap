@@ -38,6 +38,8 @@ class DockerWrapper < Command
 			return
 		end
 		if File.exist?(@buildDir+'/Dockerfile')
+			Excon.defaults[:read_timeout] = 1000
+			Excon.defaults[:write_timeout] = 1000
 			image = Docker::Image.build_from_dir(@buildDir)
 			image.tag('repo' => @dockerImage.split(':')[0], 'tag' => @dockerImage.split(':')[1], force: true)
 		else

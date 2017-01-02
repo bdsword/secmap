@@ -33,7 +33,7 @@ class PushTask < Command
 		if dirpath[-1] == '/'
 			dirpath = dirpath[0..-2]
 		end
-		Dir["#{dirpath}/**/*"].each do |f|
+		Dir.glob("#{dirpath}/**/*", File::FNM_DOTMATCH).each do |f|
 			if !File.file?(f)
 				next
 			end

@@ -80,7 +80,11 @@ class CassandraCli < Command
 	def get_file(taskuid)
 		c = CassandraWrapper.new(@ip)
 		result = c.get_file(taskuid)
-		puts result['content']
+		if result == nil
+			puts "#{taskuid} not found!!"
+		else
+			puts result['content']
+		end
 		c.close
 	end
 
@@ -96,10 +100,20 @@ class CassandraCli < Command
 		if analyzer == 'all'
 			ANALYZER.each do |a|
 				puts "#{a} :"
-				puts c.get_report(taskuid, a)['overall']
+				report = c.get_report(taskuid, a)
+				if report == nil
+					puts "#{taskuid} #{a} report not found!!"
+				else
+					puts report['overall']
+				end
 			end
 		else
-			puts c.get_report(taskuid, analyzer)['overall']
+			report = c.get_report(taskuid, analyzer)
+			if report == nil
+				puts "#{taskuid} #{a} report not found!!"
+			else
+				puts report['overall']
+			end
 		end
 		c.close
 	end

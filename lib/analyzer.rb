@@ -33,10 +33,14 @@ class Analyzer
 	end
 
 	def get_file(taskuid)
-		content = @cassandra.get_file(taskuid)['content']
+		content = @cassandra.get_file(taskuid)
+		if content = nil
+			STDERR.puts "File #{taskuid} not found!!!!"
+			return nil
+		end
 		file = Tempfile.new(taskuid)
 		file.binmode
-		file.write(content)
+		file.write(content['content'])
 		return file
 	end
 
@@ -54,6 +58,9 @@ class Analyzer
 			file = nil
 			taskuid = get_taskuid
 			file = get_file(taskuid)
+			if file == nil
+				next
+			end
 			report = analyze(file.path)
 			save_report(taskuid, report)
 			if file != nil

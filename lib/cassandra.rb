@@ -98,6 +98,7 @@ class CassandraWrapper
 		rows.each do |row|
 			return row
 		end
+		return nil
 	end
 
 	def insert_report(taskuid, report, analyzer)
@@ -117,6 +118,7 @@ class CassandraWrapper
 		rows.each do |row|
 			return row
 		end
+		return nil
 	end
 
 	def close

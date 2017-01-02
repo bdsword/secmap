@@ -16,9 +16,6 @@ class CassandraWrapper
 			exit
 		end
 
-		if @cluster.keyspace('secmap') != nil
-			@session.execute('USE secmap')
-		end
 	end
 
 	def available_host
@@ -26,9 +23,8 @@ class CassandraWrapper
 	end
 
 	def init_cassandra
-		if @cluster.keyspace('secmap') == nil
+		if @cluster.keyspace(KEYSPACE) == nil
 			create_secmap
-			@session.execute('USE secmap')
 			create_summary
 			ANALYZER.each do |analyzer|
 				create_analyzer(analyzer)
@@ -38,7 +34,7 @@ class CassandraWrapper
 
 	def create_secmap
 		secmap_definition = <<-KEYSPACE_CQL
-		  CREATE KEYSPACE secmap
+		  CREATE KEYSPACE #{KEYSPACE}
 		  WITH replication = {
 		    'class': 'SimpleStrategy',
 		    'replication_factor': 3
@@ -49,7 +45,7 @@ class CassandraWrapper
 
 	def create_summary
 		table_definition = <<-TABLE_CQL
-		  CREATE TABLE SUMMARY (
+		  CREATE TABLE #{KEYSPACE}.SUMMARY (
 		      taskuid varchar PRIMARY KEY,
 		      content blob
 		  )
@@ -59,7 +55,7 @@ class CassandraWrapper
 
 	def create_analyzer(analyzer)
 		table_definition = <<-TABLE_CQL
-		  CREATE TABLE #{analyzer} (
+		  CREATE TABLE #{KEYSPACE}.#{analyzer} (
 		    taskuid varchar PRIMARY KEY,
 		    overall varchar,
 		    analyzer varchar
@@ -70,7 +66,7 @@ class CassandraWrapper
 
 	def drop_table(table)
 		table_definition = <<-TABLE_CQL
-                  DROP TABLE #{table} 
+                  DROP TABLE #{KEYSPACE}.#{table} 
                 TABLE_CQL
 		@session.execute(table_definition)
 	end
@@ -84,16 +80,16 @@ class CassandraWrapper
 	end
 
 	def insert_file(file)
-		statement = @session.prepare('INSERT INTO summary (taskuid, content) VALUES (?, ?)')
+		statement = @session.prepare("INSERT INTO #{KEYSPACE}.summary (taskuid, content) VALUES (?, ?)")
 		taskuid = generateSecmapUID(file)
 		content = File.new(file,'rb').read
-		@session.execute(statement, arguments: [taskuid, content])
+		@session.execute(statement, arguments: [taskuid, content], timeout: 20)
 		return taskuid
 	end
 
 	def get_file(taskuid)
-		statement = @session.prepare("SELECT * FROM summary WHERE taskuid = ? ")
-		rows = @session.execute(statement, arguments: [taskuid])
+		statement = @session.prepare("SELECT * FROM #{KEYSPACE}.summary WHERE taskuid = ? ")
+		rows = @session.execute(statement, arguments: [taskuid], timeout: 20)
 		rows.each do |row|
 			return row
 		end
@@ -101,13 +97,13 @@ class CassandraWrapper
 
 	def insert_report(taskuid, report, analyzer)
 		host = Socket.gethostname
-		statement = @session.prepare("INSERT INTO #{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
-		@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}"])
+		statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
+		@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}"], timeout: 20)
 	end
 
 	def get_report(taskuid, analyzer)
-		statement = @session.prepare("SELECT * FROM #{analyzer} WHERE taskuid = ?")
-		rows = @session.execute(statement, arguments: [taskuid])
+		statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
+		rows = @session.execute(statement, arguments: [taskuid], timeout: 20)
 		rows.each do |row|
 			return row
 		end

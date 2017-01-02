@@ -93,8 +93,14 @@ class CassandraCli < Command
 
 	def get_report(taskuid, analyzer)
 		c = CassandraWrapper.new(@ip)
-		report = c.get_report(taskuid, analyzer)
-		puts report['overall']
+		if analyzer == 'all'
+			ANALYZER.each do |a|
+				puts "#{a} :"
+				puts c.get_report(taskuid, a)['overall']
+			end
+		else
+			puts c.get_report(taskuid, analyzer)['overall']
+		end
 		c.close
 	end
 

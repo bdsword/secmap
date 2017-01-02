@@ -85,7 +85,7 @@ class CassandraWrapper
 		content = File.new(file,'rb').read
 		begin
 			@session.execute(statement, arguments: [taskuid, content], timeout: 20)
-		rescue EXCEPTION => e
+		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts file+" error!!!!!!"
 		end
@@ -105,7 +105,7 @@ class CassandraWrapper
 		statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
 		begin
 			@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}"], timeout: 20)
-		rescue EXCEPTION => e
+		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts report+" error!!!!!!"
 		end

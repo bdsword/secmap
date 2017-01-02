@@ -83,7 +83,12 @@ class CassandraWrapper
 		statement = @session.prepare("INSERT INTO #{KEYSPACE}.summary (taskuid, content) VALUES (?, ?)")
 		taskuid = generateSecmapUID(file)
 		content = File.new(file,'rb').read
-		@session.execute(statement, arguments: [taskuid, content], timeout: 20)
+		begin
+			@session.execute(statement, arguments: [taskuid, content], timeout: 20)
+		rescue EXCEPTION => e
+			STDERR.puts e.message
+			STDERR.puts file+" error!!!!!!"
+		end
 		return taskuid
 	end
 
@@ -98,7 +103,12 @@ class CassandraWrapper
 	def insert_report(taskuid, report, analyzer)
 		host = Socket.gethostname
 		statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
-		@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}"], timeout: 20)
+		begin
+			@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}"], timeout: 20)
+		rescue EXCEPTION => e
+			STDERR.puts e.message
+			STDERR.puts report+" error!!!!!!"
+		end
 	end
 
 	def get_report(taskuid, analyzer)

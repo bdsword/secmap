@@ -2,8 +2,8 @@
 
 require 'tempfile'
 require __dir__+'/../conf/secmap_conf.rb'
-require LIB_HOME+'/cassandra.rb'
-require LIB_HOME+'/redis.rb'
+require __dir__+'/cassandra.rb'
+require __dir__+'/redis.rb'
 
 class Analyzer
 

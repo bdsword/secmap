@@ -3,8 +3,8 @@
 require 'sys/filesystem'
 require 'socket'
 require __dir__+'/../conf/secmap_conf.rb'
-require LIB_HOME+'/docker.rb'
-require LIB_HOME+'/common.rb'
+require __dir__+'/../lib/docker.rb'
+require __dir__+'/../lib/common.rb'
 
 class CassandraDocker < DockerWrapper
 
@@ -31,7 +31,7 @@ class CassandraDocker < DockerWrapper
 		    "CASSANDRA_BROADCAST_ADDRESS=#{hostIP}"
 		  ],
 		  'HostConfig' => {
-		    'Binds' => ["#{DATA_HOME}:/var/lib/cassandra"],
+		    'Binds' => ["#{File.expand_path(__dir__+'/../storage')}:/var/lib/cassandra"],
 		    'PortBindings' => {
 		      '7000/tcp' => [{ 'HostPort' => '7000' }],
 		      '7001/tcp' => [{ 'HostPort' => '7001' }],

@@ -5,14 +5,14 @@ require 'digest/sha1'
 require __dir__+'/../conf/secmap_conf.rb'
 
 def createLogHome
-	if( !File.exist?(LOG_HOME) )
-		`mkdir -p #{LOG_HOME}`
+	if( !File.exist?(File.expand_path(__dir__+'/../log')) )
+		`mkdir -p #{File.expand_path(__dir__+'/../log')}`
 	end
 end
 
 def createDataHome
-	if( !File.exist?(DATA_HOME) )
-		`mkdir -p #{DATA_HOME}`
+	if( !File.exist?(File.expand_path(__dir__+'/../storage')) )
+		`mkdir -p #{File.expand_path(__dir__+'/../storage')}`
 	end
 end
 

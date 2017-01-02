@@ -3,9 +3,9 @@
 require 'cassandra'
 require 'socket'
 require __dir__+'/../conf/secmap_conf.rb'
-require LIB_HOME+'/command.rb'
-require LIB_HOME+'/common.rb'
-require LIB_HOME+'/cassandra.rb'
+require __dir__+'/../lib/command.rb'
+require __dir__+'/../lib/common.rb'
+require __dir__+'/../lib/cassandra.rb'
 
 class CassandraCli < Command
 	def initialize(ip, commandName, prefix)

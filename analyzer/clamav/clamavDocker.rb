@@ -2,7 +2,7 @@
 
 require 'socket'
 require __dir__+'/../../conf/secmap_conf.rb'
-require LIB_HOME+'/docker.rb'
+require __dir__+'/../../lib/docker.rb'
 
 class ClamavDocker < DockerWrapper
 

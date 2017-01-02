@@ -3,7 +3,7 @@
 require 'cassandra'
 require 'socket'
 require __dir__+'/../conf/secmap_conf.rb'
-require LIB_HOME+'/common.rb'
+require __dir__+'/common.rb'
 
 class CassandraWrapper
 
@@ -102,7 +102,7 @@ class CassandraWrapper
 	def insert_report(taskuid, report, analyzer)
 		host = Socket.gethostname
 		statement = @session.prepare("INSERT INTO #{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
-		@session.execute(statement, arguments: [taskuid, report, "#{ANALYZER_HOME}/#{analyzer}@#{host}"])
+		@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}"])
 	end
 
 	def get_report(taskuid, analyzer)

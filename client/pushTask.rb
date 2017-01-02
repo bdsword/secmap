@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
 require __dir__+'/../conf/secmap_conf.rb'
-require LIB_HOME+'/common.rb'
-require LIB_HOME+'/command.rb'
-require LIB_HOME+'/cassandra.rb'
-require LIB_HOME+'/redis.rb'
+require __dir__+'/../lib/common.rb'
+require __dir__+'/../lib/command.rb'
+require __dir__+'/../lib/cassandra.rb'
+require __dir__+'/../lib/redis.rb'
 
 class PushTask < Command
 

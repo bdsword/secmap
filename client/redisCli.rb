@@ -2,8 +2,8 @@
 
 require 'redis'
 require __dir__+'/../conf/secmap_conf.rb'
-require LIB_HOME+'/command.rb'
-require LIB_HOME+'/redis.rb'
+require __dir__+'/../lib/command.rb'
+require __dir__+'/../lib/redis.rb'
 
 class RedisCli < Command
 

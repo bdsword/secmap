@@ -8,8 +8,8 @@ require __dir__+'/../lib/common.rb'
 
 class CassandraDocker < DockerWrapper
 
-	def initialize(commandName, prefix="")
-		super(commandName, prefix, "secmap-cassandra", "cassandra:3.9", __dir__)
+	def initialize(commandName)
+		super(commandName, "secmap-cassandra", "cassandra:3.9", __dir__)
 
 		tokens = (Sys::Filesystem.stat('/').block_size * Sys::Filesystem.stat('/').blocks_available / 1024.0 / 1024.0 / 1024.0 / 1024.0 * 256).to_i
 		hostIP = nil

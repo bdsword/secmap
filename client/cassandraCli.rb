@@ -8,10 +8,10 @@ require __dir__+'/../lib/common.rb'
 require __dir__+'/../lib/cassandra.rb'
 
 class CassandraCli < Command
-	def initialize(ip, commandName, prefix)
+	def initialize(commandName)
 		super(commandName)
 
-		@ip = ip
+		@ip = CASSANDRA
 
 		@commandTable.append("init", 0, "init_cassandra", ["Initialize cassandra keyspace and table."])
 		@commandTable.append("createSecmap", 0, "create_secmap", ["Create keyspace secmap."])
@@ -101,6 +101,6 @@ class CassandraCli < Command
 end
 
 if  __FILE__ == $0
-	c = CassandraCli.new(CASSANDRA, $0, "")
+	c = CassandraCli.new($0)
 	c.main
 end

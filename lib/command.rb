@@ -28,13 +28,12 @@ class Command
 		end
 	end
 
-	def initialize(commandName="commandTemplate", prefix="")
+	def initialize(commandName="commandTemplate")
 		@commandTable = CommandTable.new
 		@commandName = commandName
-		@prefix = prefix
 
 		@commandTable.append("help", 0, "help", ["Show this help message."])
-		@commandTable.append("list", 0, "listCommand", ["Show every command of #{@prefix}#{@commandName}."])
+		@commandTable.append("list", 0, "listCommand", ["Show every command of #{@commandName}."])
 	end
 
 	def parser(args)
@@ -49,7 +48,7 @@ class Command
 			exit
 		end
 		c = @commandTable.get(args[0])
-		if args.length != (c['argNum'] + 1)
+		if c['argNum'] != -1 && args.length != (c['argNum'] + 1)
 			puts "wrong usage"
 			puts "usage of #{args[0]}:"
 			helpCommand(args[0])
@@ -67,7 +66,7 @@ class Command
 	end
 
 	def help
-		puts "Usage of #{@prefix}#{@commandName} :"
+		puts "Usage of #{@commandName} :"
 		@commandTable.list.each do |command|
 			helpCommand(command, "\t")
 		end

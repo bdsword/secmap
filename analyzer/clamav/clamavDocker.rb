@@ -6,8 +6,8 @@ require __dir__+'/../../lib/docker.rb'
 
 class ClamavDocker < DockerWrapper
 
-	def initialize(commandName, prefix="")
-		super(commandName, prefix, "secmap-clamav", "secmap:clamav", __dir__)
+	def initialize(commandName)
+		super(commandName, "secmap-clamav", "secmap:clamav", __dir__)
 
 		@createOptions = {
 		  'Image' => @dockerImage,

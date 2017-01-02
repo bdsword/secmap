@@ -5,8 +5,8 @@ require __dir__+'/command.rb'
 
 class DockerWrapper < Command
 
-	def initialize(commandName="dockerTemplate", prfix="", dockerName, dockerImage, buildDir)
-		super(commandName, prfix)
+	def initialize(commandName="dockerTemplate", dockerName, dockerImage, buildDir)
+		super(commandName)
 		@dockerName = dockerName
 		@dockerImage = dockerImage
 		@buildDir = buildDir

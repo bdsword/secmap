@@ -8,8 +8,8 @@ require __dir__+'/../lib/redis.rb'
 
 class PushTask < Command
 
-	def initialize
-		super("pushTask", "")
+	def initialize(commandName)
+		super(commandName)
 
 		@cassandra = CassandraWrapper.new(CASSANDRA)
 		@redis = RedisWrapper.new
@@ -43,5 +43,5 @@ class PushTask < Command
 end
 
 if __FILE__ == $0
-	PushTask.new.main
+	PushTask.new($0).main
 end

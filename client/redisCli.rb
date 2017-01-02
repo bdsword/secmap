@@ -7,8 +7,8 @@ require __dir__+'/../lib/redis.rb'
 
 class RedisCli < Command
 
-	def initialize(commandName, prefix)
-		super(commandName, prefix)
+	def initialize(commandName)
+		super(commandName)
 
 		@commandTable.append("init", 0, "init_redis", ["Initialize redis data."])
 		@commandTable.append("status", 0, "status", ["Show redis status."])
@@ -27,6 +27,6 @@ class RedisCli < Command
 end
 
 if __FILE__ == $0
-	r = RedisCli.new($0, "")
+	r = RedisCli.new($0)
 	r.main
 end

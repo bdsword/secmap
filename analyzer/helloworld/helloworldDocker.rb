@@ -6,8 +6,8 @@ require __dir__+'/../../lib/docker.rb'
 
 class HelloworldDocker < DockerWrapper
 
-	def initialize(commandName, prefix="")
-		super(commandName, prefix, "secmap-helloworld", "secmap:helloworld", __dir__)
+	def initialize(commandName)
+		super(commandName, "secmap-helloworld", "secmap:helloworld", __dir__)
 
 		@createOptions = {
 		  'Image' => @dockerImage,

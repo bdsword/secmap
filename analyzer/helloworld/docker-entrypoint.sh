@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-/secmap/analyzer/helloworld/analyze.rb
+/secmap/analyzer/helloworld/helloworld.rb

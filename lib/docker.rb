@@ -89,6 +89,10 @@ class DockerWrapper < Command
 	end
 
 	def startContainer
+		if !checkContainer
+			puts "Container #{@dockerName} doesn't exist.\nPlease create container first."
+			return
+		end
 		if infoContainer["State"]["Running"]
 			puts "#{@dockerName} is already running."
 			return

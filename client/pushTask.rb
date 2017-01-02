@@ -26,6 +26,7 @@ class PushTask < Command
 		else
 			@redis.push_taskuid(taskuid, analyzer, priority)
 		end
+		puts "#{taskuid}\t#{File.expand_path(filepath)}"
 	end
 
 	def push_dir(dirpath, analyzer, priority)

@@ -25,7 +25,7 @@ class DockerWrapper < Command
 
 	def pullImage
 		if checkImage
-			puts "#{@dockerImage} already exist."
+			puts "Image #{@dockerImage} already exist."
 			return
 		end
 		image = Docker::Image.create('fromImage' => @dockerImage)
@@ -34,7 +34,7 @@ class DockerWrapper < Command
 
 	def buildImage
 		if checkImage
-			puts "#{@dockerImage} already exist."
+			puts "Image #{@dockerImage} already exist."
 			return
 		end
 		if File.exist?(@buildDir+'/Dockerfile')
@@ -49,7 +49,7 @@ class DockerWrapper < Command
 
 	def removeImage
 		if !checkImage
-            puts "#{@dockerImage} doesn't exist."
+            puts "Image #{@dockerImage} doesn't exist."
             return
         end
 		image = Docker::Image.get(@dockerImage)
@@ -125,7 +125,21 @@ class DockerWrapper < Command
 	end
 
 	def status
-		puts "Running ? #{infoContainer["State"]["Running"].to_s}"
+		if checkImage
+			puts "Image #{@dockerImage} exist."
+			if checkContainer
+				puts "Container #{@dockerName} exist."
+				if infoContainer["State"]["Running"]
+					puts "Container #{@dockerName} running."
+				else
+					puts "Container #{@dockerName} stopped."
+				end
+			else
+				puts "Container #{@dockerName} doesn't exist."
+			end
+		else
+			puts "Image #{@dockerImage} doesn't exist."
+		end
 	end
 
 	def statsContainer

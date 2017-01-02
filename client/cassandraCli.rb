@@ -23,6 +23,7 @@ class CassandraCli < Command
 		@commandTable.append("getFile", 1, "get_file", ["Get file content from cassandra by taskuid.", "Usage: getFile <taskuid>"])
 		@commandTable.append("addReport", 3, "insert_report", ["Insert a report to analyzer table.", "Usage: addReport <taskuid> <report file path> <analyzer>"])
 		@commandTable.append("getReport", 2, "get_report", ["Get a report by taskuid and the name of analyzer.", "Usage: getReport <taskuid> <analyzer>"])
+		@commandTable.append("getAllReport", 1, "get_all_report", ["Get all report of an analyzer.", "Usage: getAllReport <analyzer>"])
 	end
 
 	def init_cassandra
@@ -114,6 +115,18 @@ class CassandraCli < Command
 			else
 				puts report['overall']
 			end
+		end
+		c.close
+	end
+
+	def get_all_report(analyzer)
+		c = CassandraWrapper.new(@ip)
+		if analyzer == 'all'
+			ANALYZER.each do |a|
+				puts c.get_all_report(a)
+			end
+		else
+			puts c.get_all_report(analyzer)
 		end
 		c.close
 	end

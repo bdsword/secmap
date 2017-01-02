@@ -121,6 +121,16 @@ class CassandraWrapper
 		return nil
 	end
 
+	def get_all_report(analyzer)
+		statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer}")
+		rows = @session.execute(statement, timeout: 20)
+		report = ""
+		rows.each do |row|
+			report += "#{row['taskuid']}\t#{row['overall']}\t#{row['analyzer']}\n"
+		end
+		return report
+	end
+
 	def close
 		@session.close
 		@cluster.close

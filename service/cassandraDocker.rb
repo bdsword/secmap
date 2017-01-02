@@ -27,7 +27,7 @@ class CassandraDocker < DockerWrapper
 		  'ENV' => [
 		    "CASSANDRA_CLUSTER_NAME='SECMAP Cluster'",
 		    "CASSANDRA_NUM_TOKENS=#{tokens}",
-		    #"CASSANDRA_SEEDS=#{CASSANDRA * ' '}",
+		    "CASSANDRA_SEEDS=#{CASSANDRA * ' '}",
 		    "CASSANDRA_BROADCAST_ADDRESS=#{hostIP}"
 		  ],
 		  'HostConfig' => {

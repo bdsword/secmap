@@ -41,6 +41,7 @@ class Analyzer
 		file = Tempfile.new(taskuid)
 		file.binmode
 		file.write(content['content'])
+		File.chmod(0666, file.path)
 		return file
 	end
 

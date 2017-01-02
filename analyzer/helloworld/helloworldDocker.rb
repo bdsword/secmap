@@ -13,9 +13,9 @@ class HelloworldDocker < DockerWrapper
 		  'Image' => @dockerImage,
 		  'name' => @dockerName,
 		  'Hostname' => Socket.gethostname,
-		  'Volumes' => { '/home/dsns/secmap' => {} },
+		  'Volumes' => { '/secmap' => {} },
 		  'HostConfig' => {
-		    'Binds' => ["/home/dsns/secmap:/home/dsns/secmap"],
+		    'Binds' => ["#{File.expand_path(__dir__+"/../../")}:/secmap"],
 		  }
 		}
 	end

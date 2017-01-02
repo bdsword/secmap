@@ -5,9 +5,7 @@ FROM ubuntu:xenial
 RUN apt-get update && \
 	apt-get install -y --no-install-recommends ruby=1:2.3.0+1 ruby-dev=1:2.3.0+1 gcc=4:5.3.1-1ubuntu1 make=4.1-6 libc6-dev=2.23-0ubuntu5 && \
 	gem install redis -v 3.3.2 && \
-	gem install cassandra-driver -v 3.1.0 && \
-	gem install docker-api -v 1.33.1 && \
-	gem install sys-filesystem -v 1.1.7
+	gem install cassandra-driver -v 3.1.0
 
 # Install analyzer required packages here.
 RUN apt-get install -y --no-install-recommends clamav-daemon=0.99.2+dfsg-0ubuntu0.16.04.1 clamdscan=0.99.2+dfsg-0ubuntu0.16.04.1
@@ -19,6 +17,7 @@ RUN mkdir -p /var/run/clamav && chown clamav /var/run/clamav && \
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-RUN mkdir -p /home/dsns/secmap 
-VOLUME /home/dsns/secmap
+# create secmap to mount
+RUN mkdir -p /secmap 
+VOLUME /secmap
 

@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-/home/dsns/secmap/analyzer/helloworld/analyze.rb
+/secmap/analyzer/helloworld/analyze.rb

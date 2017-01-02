@@ -20,8 +20,8 @@
   > $ ./secmap.rb service CassandraDocker create  
 
 6. Build analyzer docker container by Dockerfile.
-  > $ ./secmap.rb analyzerDocker <analyzer docker name> build  
-  > $ ./secmap.rb analyzerDocker <analyzer docker name> create
+  > $ ./secmap.rb analyzerDocker \<analyzer docker name\> build  
+  > $ ./secmap.rb analyzerDocker \<analyzer docker name\> create
 
 ## How to use
   

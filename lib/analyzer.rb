@@ -34,7 +34,7 @@ class Analyzer
 
 	def get_file(taskuid)
 		content = @cassandra.get_file(taskuid)
-		if content = nil
+		if content == nil
 			STDERR.puts "File #{taskuid} not found!!!!"
 			return nil
 		end

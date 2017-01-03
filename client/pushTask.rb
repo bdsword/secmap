@@ -19,7 +19,7 @@ class PushTask < Command
 
 	def push_file(filepath, analyzer, priority)
 		taskuid = @cassandra.insert_file(filepath)
-		if taskuid = nil
+		if taskuid == nil
 			STDERR.puts "Insert file fail!!!!"
 			return
 		end

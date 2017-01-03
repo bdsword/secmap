@@ -39,11 +39,24 @@ class RedisWrapper
 	end
 
 	def get_taskuid(analyzer)
-		return @r.lpop(analyzer)
+		taskuid = nil
+		begin
+			taskuid = @r.lpop(analyzer)
+		rescue Exception => e
+			STDERR.puts e.message
+			STDERR.puts 'Get taskuid fail!!!!'
+			taskuid = nil
+		end
+		return taskuid
 	end
 
 	def push_taskuid(taskuid, analyzer, priority)
-		@r.rpush("#{analyzer}:#{priority}", taskuid)
+		begin
+			@r.rpush("#{analyzer}:#{priority}", taskuid)
+		rescue Exception => e
+			STDERR.puts e.message
+			STDERR.puts 'Push task fail!!!!'
+		end
 	end
 
 end

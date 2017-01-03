@@ -19,6 +19,10 @@ class PushTask < Command
 
 	def push_file(filepath, analyzer, priority)
 		taskuid = @cassandra.insert_file(filepath)
+		if taskuid = nil
+			STDERR.puts "Insert file fail!!!!"
+			return
+		end
 		if analyzer == 'all'
 			ANALYZER.each do |a|
 				@redis.push_taskuid(taskuid, a, priority)

@@ -74,7 +74,10 @@ class CassandraCli < Command
 
 	def insert_file(file)
 		c = CassandraWrapper.new(@ip)
-		c.insert_file(file)
+		taskuid = c.insert_file(file)
+		if taskuid == nil
+			STDERR.puts 'Insert file fsil!!!!'
+		end
 		c.close
 	end
 

@@ -88,6 +88,7 @@ class CassandraWrapper
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts file+" error!!!!!!"
+			taskuid = nil
 		end
 		return taskuid
 	end

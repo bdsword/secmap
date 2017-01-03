@@ -11,8 +11,9 @@ class CassandraWrapper
 		begin
 			@cluster = Cassandra.cluster(hosts: ip)
 			@session = @cluster.connect
-		rescue Cassandra::Errors::NoHostsAvailable
-			puts "Cannot connect to cassandra cluster host on #{ip.to_s}."
+		rescue Exception => e
+			STDERR.puts e.message
+			STDERR.puts "Cannot connect to cassandra cluster host on #{ip.to_s}."
 			exit
 		end
 

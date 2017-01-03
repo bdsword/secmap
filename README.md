@@ -3,49 +3,56 @@
 ## Installation
 
 1. Run the install script __install.sh__.
+
 2. Copy and modified configuration files to fit your environment. Please read the comments for further helps.
-  > $ cp conf/cassandra/cassandra.example.yaml conf/cassandra/cassandra.yaml
-  >
-  > $ vim conf/cassandra/cassandra.yaml
 
+  ```bash
+  $ cp conf/cassandra/cassandra.example.yaml conf/cassandra/cassandra.yaml
+  $ vim conf/cassandra/cassandra.yaml
 
-  > $ cp conf/secmap_conf.example.rb conf/secmap_conf.rb
-  >
-  > $ vim conf/secmap_conf.rb
+  $ cp conf/secmap_conf.example.rb conf/secmap_conf.rb
+  $ vim conf/secmap_conf.rb
 
-  > $ cp storage/redis_init.example.rb storage/redis_init.rb
-  >
-  > $ vim storage/redis_init.rb
+  $ cp storage/redis_init.example.rb storage/redis_init.rb
+  $ vim storage/redis_init.rb
+  ```
 
 3. Start the redia/cassandra service for the nodes.
-  > $ ./secmap.rb start redis
-  >
-  > $ ./secmap.rb start cassandra
+
+  ```bash
+  $ ./secmap.rb start redis
+  $ ./secmap.rb start cassandra
+  ```
 
 ## Usage
 
-1. 呼叫secmap開始分析
+1. Call secmap to analyze all samples in a specific folder:
 
-  > $ cd secmap/input/read_dir (一定要cd進去)
+  ```bash
+  $ cd secmap/input/read_dir
+  $ ./readSamplesFromDir.rb <target folder path>
+  ```
 
-  > $ ./readSamplesFromDir.rb <samples所在目錄>
+2. Find the taskUID for your analysis
 
-2. 找出欲查看之sample對應的Task UID
+  ```bash
+  $ cat secmap/logs/taskUID_vs_filename.log
+  ```
 
-  > $ cat secmap/logs/taskUID_vs_filename.log
+3. Read the report of your analysis
 
-3. 查看該UID對應的分析結果
-
-  > $ cd secmap/lib (一定要cd進去)
-
-  > $ ./getReportFromCassandra.rb <Task UID> <AnalyzerType>
-
+  ```bash
+  $ cd secmap/lib
+  $ ./getReportFromCassandra.rb <TaskUID> <AnalyzerType>
+  ```
 
 ## Write an Analyzer
 
 1. Create a directory for your analyzer under __ENV['ANALYZER_HOME']__.
 
-  > $ mkdir /var/analyzers/my_analyzer
+  ```bash
+  $ mkdir /var/analyzers/my_analyzer
+  ```
 
 2. Create a file named __config__ under your analyzer directory, and 3 options should be set inside the config file:
 

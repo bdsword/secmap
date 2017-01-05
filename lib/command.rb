@@ -23,6 +23,10 @@ class Command
 			return @commandHash[command]
 		end
 
+		def del(command)
+			return @commandHash.delete(command)
+		end
+
 		def list
 			return @commandHash.keys
 		end

@@ -5,7 +5,7 @@ require __dir__+'/command.rb'
 
 class DockerWrapper < Command
 
-	def initialize(commandName="dockerTemplate", dockerName, dockerImage, buildDir)
+	def initialize(commandName="dockerTemplate", dockerName="", dockerImage="", buildDir="")
 		super(commandName)
 		@dockerName = dockerName
 		@dockerImage = dockerImage
@@ -21,6 +21,7 @@ class DockerWrapper < Command
 		@commandTable.append("stop", 0, "stopContainer", ["Stop #{@dockerName}."])
 		@commandTable.append("restart", 0, "restartContainer", ["Retart #{@dockerName}."])
 		@commandTable.append("status", 0, "status", ["Show #{@dockerName} status."])
+		@commandTable.append("ps", 0, "ps", ["Show all container."])
 	end
 
 	def pullImage
@@ -76,7 +77,8 @@ class DockerWrapper < Command
 			return
 		end
 		res = Docker::Container.create(@createOptions)
-		puts res
+		@dockerName = res.id
+		puts res.id
 	end
 
 	def removeContainer
@@ -162,6 +164,18 @@ class DockerWrapper < Command
 			puts "#{@dockerName} container not create yet."
 		end
 		return info
+	end
+
+	def exec(*cmd)
+		Docker::Container.get(@dockerName).exec(*cmd)
+	end
+
+	def ps
+		infos = []
+		Docker::Container.all(:all => true).each do |a|
+			infos.push(a.info)
+		end
+		return infos
 	end
 
 end

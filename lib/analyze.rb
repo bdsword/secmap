@@ -5,11 +5,11 @@ require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/cassandra.rb'
 require __dir__+'/redis.rb'
 
-class Analyzer
+class Analyze
 
-	def initialize
+	def initialize(analyzer_name)
 		@priority = [0, 1, 2, 3]
-		@analyzer_name
+		@analyzer_name = analyzer_name
 		@sleep_seconds = 5
 
 		@redis = RedisWrapper.new
@@ -46,8 +46,7 @@ class Analyzer
 	end
 
 	def analyze(file_path)
-		# do analyze
-		# return report
+		return `/analyze #{file_path}`
 	end
 
 	def save_report(taskuid, report)

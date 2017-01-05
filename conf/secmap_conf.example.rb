@@ -17,6 +17,9 @@ KEYSPACE = 'secmap'
 # EX: ANALYZERS = ['MBA', 'CLAMAV', 'VirusTotal', 'FRNSR', 'Antivir' 'Kaspersky']
 ANALYZER = ['']
 
+# Docker account name
+DOCKER = ''
+
 # Only redis server have to config this
 REDIS_INIT = {
 	'CASSANDRA' => CASSANDRA * ' ',

@@ -2,77 +2,44 @@
 
 ## Installation
 
-1. Run the install script __install.sh__.
+1. Install docker on your system.  
+2. Add your account to docker group.
+3. Run the install script install.sh.
+  > $ ./install.sh  
 
-2. Copy and modified configuration files to fit your environment. Please read the comments for further helps.
+4. Copy and modified configuration file to fit your environment. Please read the comments for further helps.
+  > $ cp conf/secmap_conf.example.rb conf/secmap_conf.rb  
+  >
+  > $ vim conf/secmap_conf.rb  
 
-  ```bash
-  $ cp conf/cassandra/cassandra.example.yaml conf/cassandra/cassandra.yaml
-  $ vim conf/cassandra/cassandra.yaml
+5. Build redia/cassandra container.
+  > $ ./secmap.rb service RedisDocker pull  
+  > $ ./secmap.rb service RedisDocker create  
+  >
+  > $ ./secmap.rb service CassandraDocker pull  
+  > $ ./secmap.rb service CassandraDocker create  
 
-  $ cp conf/secmap_conf.example.rb conf/secmap_conf.rb
-  $ vim conf/secmap_conf.rb
+6. Build analyzer docker container by Dockerfile.
+  > $ ./secmap.rb analyzerDocker \<analyzer docker name\> build  
+  > $ ./secmap.rb analyzerDocker \<analyzer docker name\> create
 
-  $ cp storage/redis_init.example.rb storage/redis_init.rb
-  $ vim storage/redis_init.rb
-  ```
+## How to use
+  
+1. Start/stop/status the redia/cassandra service for the nodes.
+  > $ ./secmap.rb service RedisDocker start/stop/status  
+  >
+  > $ ./secmap.rb service CassandraDocker start/stop/status  
 
-3. Start the redia/cassandra service for the nodes.
+2. See more commands of redia/cassandra service.
+  > $ ./secmap.rb service RedisDocker list  
+  >
+  > $ ./secmap.rb service CassandraDocker list  
 
-  ```bash
-  $ ./secmap.rb start redis
-  $ ./secmap.rb start cassandra
-  ```
+3. Start/stop/status analyzer docker.
+  > $ ./secmap.rb analyzerDocker <analyzer docker name> start/stop/status  
 
-## Usage
+4. See more commands of analyzer dockers.
+  > $ ./secmap.rb analyzerDocker <analyzer docker name> list  
 
-1. Call secmap to analyze all samples in a specific folder:
-
-  ```bash
-  $ cd secmap/input/read_dir
-  $ ./readSamplesFromDir.rb <target folder path>
-  ```
-
-2. Find the taskUID for your analysis
-
-  ```bash
-  $ cat secmap/logs/taskUID_vs_filename.log
-  ```
-
-3. Read the report of your analysis
-
-  ```bash
-  $ cd secmap/lib
-  $ ./getReportFromCassandra.rb <TaskUID> <AnalyzerType>
-  ```
-
-## Write an Analyzer
-
-1. Create a directory for your analyzer under __ENV['ANALYZER_HOME']__.
-
-  ```bash
-  $ mkdir /var/analyzers/my_analyzer
-  ```
-
-2. Create a file named __config__ under your analyzer directory, and 3 options should be set inside the config file:
-
-  - TYPE: The name of your analyzer.
-
-  - LOG: The output log file of your analyzer.
-
-  - COMMAND: The command to run/start your analyzer.
-
-
-- Example config files:
-
-  ```bash
-  # File path: /var/analyzers/my_analyzer/config
-  TYPE=MY_ANALYZER
-  LOG=RESULT.log
-  COMMAND=/var/analyzers/my_analyzer/start.sh
-  ```
-
-  ```bash
-  # File path: /var/analyzers/my_analyzer/start.sh
-  echo "DEMO Result!!!" > RESULT.log
-  ```
+5. See more command about redis/cassandra/pushtask client.
+  > $ ./secmap.rb RedisCli/PushTask/CassandraCli list  

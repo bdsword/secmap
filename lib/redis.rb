@@ -11,6 +11,8 @@ class RedisWrapper
 		rescue
 			puts "redis server #{REDIS_ADDR} is not available."
 		end
+		@taskuid = nil
+		@time = nil
 	end
 
 	def init_redis
@@ -39,15 +41,36 @@ class RedisWrapper
 	end
 
 	def get_taskuid(analyzer)
-		taskuid = nil
+		@taskuid = nil
 		begin
-			taskuid = @r.lpop(analyzer)
+			@taskuid = @r.lpop(analyzer)
+			@time = Time.new.to_s
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts 'Get taskuid fail!!!!'
-			taskuid = nil
+			@taskuid = nil
 		end
-		return taskuid
+		return @taskuid
+	end
+
+	def set_doing(analyzer)
+		begin
+			@r.rpush("#{analyzer}:doing", "#{@taskuid}:#{@time}")
+		rescue Exception => e
+			STDERR.puts e.message
+			STDERR.puts 'Set doing fail!!!!'
+		end
+	end
+
+	def del_doing(analyzer)
+		begin
+			@r.lrem("#{analyzer}:doing" , 1, "#{@taskuid}:#{@time}")
+			@taskuid = nil
+			@time = nil
+		rescue Exception => e
+			STDERR.puts e.message
+			STDERR.puts 'Set doing fail!!!!'
+		end
 	end
 
 	def push_taskuid(taskuid, analyzer, priority)

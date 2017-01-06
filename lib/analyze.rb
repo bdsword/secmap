@@ -22,6 +22,7 @@ class Analyze
 			@priority.each do |p|
 				taskuid = @redis.get_taskuid("#{@analyzer_name}:#{p.to_s}")
 				if taskuid != nil
+					@redis.set_doing(@analyzer_name)
 					break
 				end
 			end
@@ -51,6 +52,7 @@ class Analyze
 
 	def save_report(taskuid, report)
 		@cassandra.insert_report(taskuid, report, @analyzer_name)
+		@redis.del_doing(@analyzer_name)
 	end
 
 	def do

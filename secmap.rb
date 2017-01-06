@@ -3,7 +3,6 @@
 require __dir__+'/lib/command.rb'
 Dir[__dir__+"/service/*.rb"].each {|file| require file }
 Dir[__dir__+"/client/*.rb"].each {|file| require file }
-Dir[__dir__+"/analyzer/**/*.rb"].each {|file| require file }
 
 class Secmap < Command
 
@@ -12,8 +11,6 @@ class Secmap < Command
 
 		@commandTable.append("service", -1, "service", [""])
 		@commandTable.append("client", -1, "client", [""])
-		#@commandTable.append("analyzer", -1, "analyzer", [""])
-		@commandTable.append("analyzerDocker", -1, "analyzerDocker", [""])
 	end
 
 	def callClass(rbs)
@@ -43,24 +40,6 @@ class Secmap < Command
 			clients.push(File.basename(s,'.rb')[0].upcase+File.basename(s,'.rb')[1..-1])
 		end
 		callClass(clients)
-	end
-
-=begin
-	def analyzer(*args)
-		analyzers = []
-		Dir[__dir__+'/analyzer/**/*[^Docker].rb'].each do |s|
-			analyzers.push(File.basename(s,'.rb')[0].upcase+File.basename(s,'.rb')[1..-1])
-		end
-		puts analyzers
-	end
-=end
-
-	def analyzerDocker(*args)
-		analyzerDockers = []
-		Dir[__dir__+'/analyzer/**/*Docker.rb'].each do |s|
-			analyzerDockers.push(File.basename(s,'.rb')[0].upcase+File.basename(s,'.rb')[1..-1])
-		end
-		callClass(analyzerDockers)
 	end
 
 end

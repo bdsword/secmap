@@ -14,7 +14,7 @@ CASSANDRAPORT = 9042
 KEYSPACE = 'secmap'
 
 # Store the analyzers
-# EX: ANALYZERS = ['MBA', 'CLAMAV', 'VirusTotal', 'FRNSR', 'Antivir' 'Kaspersky']
+# EX: ANALYZER = ['MBA', 'CLAMAV', 'VirusTotal', 'FRNSR', 'Antivir' 'Kaspersky']
 ANALYZER = ['']
 
 # Docker account name

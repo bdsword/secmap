@@ -59,4 +59,16 @@ class RedisWrapper
 		end
 	end
 
+	def get_analyzer
+		analyzer = nil
+		begin
+			analyzer = @r.get('ANALYZERS').split(' ')
+		rescue Exception => e
+			STDERR.puts e.message
+			STDERR.puts 'Get analyzer from fail!!!!'
+			STDERR.puts 'Use local config.'
+		end
+		return analyzer
+	end
+
 end

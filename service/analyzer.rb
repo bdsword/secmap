@@ -4,6 +4,7 @@ require __dir__+'/../lib/analyze.rb'
 require __dir__+'/../lib/command.rb'
 require __dir__+'/../lib/docker.rb'
 require __dir__+'/../lib/analyzerDocker.rb'
+require __dir__+'/../lib/redis.rb'
 
 class Analyzer < Command
 
@@ -62,7 +63,12 @@ class Analyzer < Command
 	end
 
 	def show
-		puts ANALYZER * ' '
+		analyzer = RedisWrapper.new.get_analyzer
+		if analyzer == nil
+			puts ANALYZER * ' '
+		else
+			puts analyzer * ' '
+		end
 	end
 
 end

@@ -13,6 +13,10 @@ class PushTask < Command
 
 		@cassandra = CassandraWrapper.new(CASSANDRA)
 		@redis = RedisWrapper.new
+		@analyzer = @redis.get_analyzer
+		if @analyzer == nil
+			@analyzer = ANALYZER
+		end
 		@commandTable.append("addFile", 3, "push_file", ["Add file to task list.", "Usage: addFile <file path> <analyzer> <priority> .", "Analyzer can be all ."])
 		@commandTable.append("addDir", 3, "push_dir", ["Add all files under directory to task list.", "Usage: addDir <dir path> <analyzer> <priority> .", "Analyzer can be all ."])
 	end
@@ -24,7 +28,7 @@ class PushTask < Command
 			return
 		end
 		if analyzer == 'all'
-			ANALYZER.each do |a|
+			@analyzer.each do |a|
 				@redis.push_taskuid(taskuid, a, priority)
 			end
 		else

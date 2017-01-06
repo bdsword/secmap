@@ -4,6 +4,7 @@ require 'cassandra'
 require 'socket'
 require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/common.rb'
+require __dir__+'/redis.rb'
 
 class CassandraWrapper
 
@@ -27,7 +28,11 @@ class CassandraWrapper
 		if @cluster.keyspace(KEYSPACE) == nil
 			create_secmap
 			create_summary
-			ANALYZER.each do |analyzer|
+			analyzers = RedisWrapper.new.get_analyzer
+			if analyzers == nil
+				analyzers = ANALYZER
+			end
+			analyzers.each do |analyzer|
 				create_analyzer(analyzer)
 			end
 		end

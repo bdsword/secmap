@@ -6,12 +6,17 @@ require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/../lib/command.rb'
 require __dir__+'/../lib/common.rb'
 require __dir__+'/../lib/cassandra.rb'
+require __dir__+'/../lib/redis.rb'
 
 class CassandraCli < Command
 	def initialize(commandName)
 		super(commandName)
 
 		@ip = CASSANDRA
+		@analyzer = RedisWrapper.new.get_analyzer
+		if @analyzer == nil
+			@analyzer = ANALYZER
+		end
 
 		@commandTable.append("init", 0, "init_cassandra", ["Initialize cassandra keyspace and table."])
 		@commandTable.append("createSecmap", 0, "create_secmap", ["Create keyspace secmap."])
@@ -102,7 +107,7 @@ class CassandraCli < Command
 	def get_report(taskuid, analyzer)
 		c = CassandraWrapper.new(@ip)
 		if analyzer == 'all'
-			ANALYZER.each do |a|
+			@analyzer.each do |a|
 				puts "#{a} :"
 				report = c.get_report(taskuid, a)
 				if report == nil
@@ -125,7 +130,7 @@ class CassandraCli < Command
 	def get_all_report(analyzer)
 		c = CassandraWrapper.new(@ip)
 		if analyzer == 'all'
-			ANALYZER.each do |a|
+			@analyzer.each do |a|
 				puts c.get_all_report(a)
 			end
 		else

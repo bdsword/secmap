@@ -7,7 +7,7 @@ require __dir__+'/docker.rb'
 class AnalyzerDocker < DockerWrapper
 
 	def initialize(dockerImage)
-		@dockerImage = "#{DOCKER}:#{dockerImage}"
+		@dockerImage = "#{DOCKER}/#{dockerImage}"
 		@analyzerName = dockerImage
 		super('', '', @dockerImage, __dir__)
 		@dockerName = " "

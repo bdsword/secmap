@@ -70,7 +70,8 @@ class CassandraWrapper
 		table_definition = <<-TABLE_CQL
 		  CREATE TABLE #{KEYSPACE}.SUMMARY (
 		    taskuid varchar PRIMARY KEY,
-		    path varchar
+		    path varchar,
+		    PRIMARY KEY (taskuid, path)
 		  )
 		TABLE_CQL
 		begin

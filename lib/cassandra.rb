@@ -69,7 +69,7 @@ class CassandraWrapper
 	def create_summary
 		table_definition = <<-TABLE_CQL
 		  CREATE TABLE #{KEYSPACE}.SUMMARY (
-		    taskuid varchar PRIMARY KEY,
+		    taskuid varchar,
 		    path varchar,
 		    PRIMARY KEY (taskuid, path)
 		  )

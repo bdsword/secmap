@@ -11,8 +11,9 @@ class Analyzer < Command
 	def initialize(commandName)
 		super(commandName)
 		
-		@commandTable.append("set", 2, "set", ["Set analyze number.", "Usage: set <analyzer docker image name> <number of analyze>.", "Analyzer docker name can be all."])
+		@commandTable.append("set", 2, "set", ["Set analyze number.", "Usage: set <analyzer docker image name> <number of analyze> .", "Analyzer docker name can be all."])
 		@commandTable.append("exist", 0, "printexist", ["Show all exist analyzer docker create by secmap."])
+		@commandTable.append("update", 1, "update", ["Update analyzer.", "Usage: update <analyzer docker image name> ."])
 		@commandTable.append("show", 0, "show", ["Show all analyzer image name."])
 	end
 
@@ -60,6 +61,23 @@ class Analyzer < Command
 		exist.each do |a|
 			puts a * "\t\t\t\t"
 		end
+	end
+
+	def update(dockerImage)
+		num = num.to_i
+		existed = []
+
+		exist.each do |a|
+			if a[1] == dockerImage
+				docker = Docker::Container.get(a[0])
+				docker.stop
+				docker.delete(:force => true)
+			end
+		end
+
+		image = AnalyzerDocker.new(dockerImage)
+		image.removeImage
+		image.pullImage
 	end
 
 	def show

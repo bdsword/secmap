@@ -20,6 +20,9 @@ ANALYZER = ['']
 # Docker account name
 DOCKER = ''
 
+# Sample directory
+SAMPLE = ''
+
 # Only redis server have to config this
 REDIS_INIT = {
 	'CASSANDRA' => CASSANDRA * ' ',

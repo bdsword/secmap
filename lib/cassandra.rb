@@ -70,7 +70,7 @@ class CassandraWrapper
 		table_definition = <<-TABLE_CQL
 		  CREATE TABLE #{KEYSPACE}.SUMMARY (
 		    taskuid varchar PRIMARY KEY,
-		    content blob
+		    path varchar
 		  )
 		TABLE_CQL
 		begin
@@ -126,8 +126,8 @@ class CassandraWrapper
 		begin
 			statement = @session.prepare("INSERT INTO #{KEYSPACE}.summary (taskuid, content) VALUES (?, ?)")
 			taskuid = generateSecmapUID(file)
-			content = File.new(file,'rb').read
-			@session.execute(statement, arguments: [taskuid, content], timeout: 3)
+			path = File.expand_path(file)
+			@session.execute(statement, arguments: [taskuid, path], timeout: 3)
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts file+" error!!!!!!"

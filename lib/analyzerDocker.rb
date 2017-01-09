@@ -19,12 +19,12 @@ class AnalyzerDocker < DockerWrapper
 		  'AttachStdout': true,
 		  'AttachStderr': true,
 		  'Tty': true,
-		  'Entrypoint' => "/secmap/analyzer/doAnalyze.rb",
-		  'Volumes' => { '/secmap' => {} },
+		  'Entrypoint' => '/secmap/analyzer/doAnalyze.rb',
+		  'Volumes' => { '/secmap' => {}, '/sample' => {} },
 		  'Labels' => { 'secmap' => @analyzerName },
 		  'ENV' => ["analyzer=#{@analyzerName}"],
 		  'HostConfig' => {
-		    'Binds' => ["#{File.expand_path(__dir__+"/../")}:/secmap:ro"],
+		    'Binds' => ["#{File.expand_path(__dir__+"/../")}:/secmap:ro", "#{SAMPLE}:/sample:ro"],
 		  }
 		}
 		puts @createOptions

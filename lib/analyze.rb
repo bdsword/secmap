@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'tempfile'
 require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/cassandra.rb'
 require __dir__+'/redis.rb'
@@ -34,16 +33,14 @@ class Analyze
 	end
 
 	def get_file(taskuid)
-		content = @cassandra.get_file(taskuid)
-		if content == nil
+		res = @cassandra.get_file(taskuid)
+		if res == nil
 			STDERR.puts "File #{taskuid} not found!!!!"
 			return nil
+		else
+			path = res['path'].sub(SAMPLE. '/sample')
+			return path
 		end
-		file = Tempfile.new(taskuid)
-		file.binmode
-		file.write(content['content'])
-		File.chmod(0666, file.path)
-		return file
 	end
 
 	def analyze(file_path)
@@ -65,10 +62,6 @@ class Analyze
 			end
 			report = analyze(file.path)
 			save_report(taskuid, report)
-			if file != nil
-				file.close
-				file.unlink
-			end
 		end
 	end
 

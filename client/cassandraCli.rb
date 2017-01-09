@@ -92,7 +92,7 @@ class CassandraCli < Command
 		if result == nil
 			puts "#{taskuid} not found!!"
 		else
-			puts result['content']
+			puts result['path']
 		end
 		c.close
 	end

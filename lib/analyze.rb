@@ -60,7 +60,7 @@ class Analyze
 			if file == nil
 				next
 			end
-			report = analyze(path)
+			report = analyze(file)
 			save_report(taskuid, report)
 		end
 	end

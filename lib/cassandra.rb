@@ -125,7 +125,7 @@ class CassandraWrapper
 
 	def insert_file(file)
 		begin
-			statement = @session.prepare("INSERT INTO #{KEYSPACE}.summary (taskuid, content) VALUES (?, ?)")
+			statement = @session.prepare("INSERT INTO #{KEYSPACE}.summary (taskuid, path) VALUES (?, ?)")
 			taskuid = generateSecmapUID(file)
 			path = File.expand_path(file)
 			@session.execute(statement, arguments: [taskuid, path], timeout: 3)

@@ -38,7 +38,7 @@ class Analyze
 			STDERR.puts "File #{taskuid} not found!!!!"
 			return nil
 		else
-			path = res['path'].sub(SAMPLE. '/sample')
+			path = res['path'].sub(SAMPLE, '/sample')
 			return path
 		end
 	end

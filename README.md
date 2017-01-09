@@ -32,7 +32,7 @@
   > $ ./secmap.rb service CassandraDocker list  
 
 3. Set analyzer docker number.
-  > $ ./secmap.rb service Analyzer \<analyzer docker image name\> set \<number\>  
+  > $ ./secmap.rb service Analyzer set \<analyzer docker image name\> \<number\>  
 
 4. Get existed analyzers.
   > $ ./secmap.rb service Analyzer exist

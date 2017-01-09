@@ -19,10 +19,6 @@
   > $ ./secmap.rb service CassandraDocker pull  
   > $ ./secmap.rb service CassandraDocker create  
 
-6. Build analyzer docker container by Dockerfile.
-  > $ ./secmap.rb analyzerDocker \<analyzer docker name\> build  
-  > $ ./secmap.rb analyzerDocker \<analyzer docker name\> create
-
 ## How to use
   
 1. Start/stop/status the redia/cassandra service for the nodes.
@@ -35,11 +31,11 @@
   >
   > $ ./secmap.rb service CassandraDocker list  
 
-3. Start/stop/status analyzer docker.
-  > $ ./secmap.rb analyzerDocker <analyzer docker name> start/stop/status  
+3. Set analyzer docker number.
+  > $ ./secmap.rb service Analyzer \<analyzer docker image name\> set <number>  
 
-4. See more commands of analyzer dockers.
-  > $ ./secmap.rb analyzerDocker <analyzer docker name> list  
+4. Get existed analyzers.
+  > $ ./secmap.rb service Analyzer exist
 
 5. See more command about redis/cassandra/pushtask client.
   > $ ./secmap.rb RedisCli/PushTask/CassandraCli list  

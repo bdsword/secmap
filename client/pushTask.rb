@@ -27,6 +27,12 @@ class PushTask < Command
 			STDERR.puts "Insert file fail!!!!"
 			return
 		end
+		push_to_redis(taskuid, analyzer, priority)
+		puts "#{taskuid}\t#{File.expand_path(filepath)}"
+		return "#{taskuid}\t#{File.expand_path(filepath)}"
+	end
+
+	def push_to_redis(taskuid, analyzer, priority)
 		if analyzer == 'all'
 			@analyzer.each do |a|
 				@redis.push_taskuid(taskuid, a, priority)
@@ -34,18 +40,27 @@ class PushTask < Command
 		else
 			@redis.push_taskuid(taskuid, analyzer, priority)
 		end
-		puts "#{taskuid}\t#{File.expand_path(filepath)}"
 	end
 
 	def push_dir(dirpath, analyzer, priority)
-		if dirpath[-1] == '/'
-			dirpath = dirpath[0..-2]
-		end
-		Dir.glob("#{dirpath}/**/*", File::FNM_DOTMATCH).each do |f|
-			if !File.file?(f)
-				next
+		dirpath = File.expand_path(dirpath)
+
+		if File.exist?("#{dirpath}/all_taskuid")
+			lines = File.new("#{dirpath}/all_taskuid", 'r').readlines.each do |line|
+				taskuid = line.gsub(/\t.*\n/, '')
+				push_to_redis(taskuid, analyzer, priority)
 			end
-			push_file(f, analyzer, priority)
+		else
+			lines = ''
+			Dir.glob("#{dirpath}/**/*", File::FNM_DOTMATCH).each do |f|
+				if !File.file?(f)
+					next
+				end
+				STDOUT.reopen('/dev/null')
+				lines += push_file(f, analyzer, priority) + "\n"
+				STDOUT.reopen($stdout)
+			end
+			File.new("#{dirpath}/all_taskuid", 'w').write(lines)
 		end
 	end
 

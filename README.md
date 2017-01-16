@@ -76,7 +76,28 @@ Using ansible to control those services are also recommended.
 You can use the following command to control secmap services.
 
 ```bash
-$ ansible -i inventory redis -m raw -a "cd <secmap home> && ./secmap.rb service <service name> <action>"
+$ ansible -i inventory <hosts> -m raw -a "cd <secmap home> && ./secmap.rb service <service name> <action>"
+```
+
+Hosts can be any group of following (see inventory file for more details):
+
+```conf
+[redis]
+192.168.100.1  ansible_port=22  ansible_user=dsns
+[noredis]
+192.168.100.2  ansible_port=22  ansible_user=dsns
+192.168.100.3  ansible_port=22  ansible_user=dsns
+192.168.100.4  ansible_port=22  ansible_user=dsns
+192.168.100.5  ansible_port=22  ansible_user=dsns
+192.168.100.6  ansible_port=22  ansible_user=dsns
+[seed]
+192.168.100.1  ansible_port=22  ansible_user=dsns
+192.168.100.3  ansible_port=22  ansible_user=dsns
+[notseed]
+192.168.100.2  ansible_port=22  ansible_user=dsns
+192.168.100.4  ansible_port=22  ansible_user=dsns
+192.168.100.5  ansible_port=22  ansible_user=dsns
+192.168.100.6  ansible_port=22  ansible_user=dsns
 ```
 
 Examples:
@@ -92,7 +113,11 @@ $ ansible -i inventory redis -m raw -a "cd secmap && ./secmap.rb service RedisDo
 $ ansible -i inventory redis -m raw -a "cd secmap && ./secmap.rb service RedisDocker create"
 
 # Get the existed analyzer
-$ ansible -i inventory redis -m raw -a "cd secmap && ./secmap.rb service Analyzer exist"
+$ ansible -i inventory all -m raw -a "cd secmap && ./secmap.rb service Analyzer exist"
+
+# Check the Analyzer status of specific ip/nodes
+$ ansible all -i 192.168.100.1, -m raw -a "cd secmap && ./secmap.rb service Analyzer exist"
+$ ansible all -i 192.168.100.2,192.168.100.3 -m raw -a "cd secmap && ./secmap.rb service Analyzer exist"
 ```
 
 See the [How to use](# How to use) for more details.

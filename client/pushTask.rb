@@ -57,7 +57,12 @@ class PushTask < Command
 					next
 				end
 				STDOUT.reopen('/dev/null')
-				lines += push_file(f, analyzer, priority) + "\n"
+				res = push_file(f, analyzer, priority)
+				if res != nil
+					lines += res + "\n"
+				else
+					lines += "Push file #{f} error!!!!"
+				end
 				STDOUT.reopen($stdout)
 			end
 			File.new("#{dirpath}/all_taskuid", 'w').write(lines)

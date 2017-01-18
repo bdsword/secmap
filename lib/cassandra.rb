@@ -70,8 +70,8 @@ class CassandraWrapper
 		table_definition = <<-TABLE_CQL
 		  CREATE TABLE #{KEYSPACE}.SUMMARY (
 		    taskuid varchar,
-		    path varchar,
-		    PRIMARY KEY (taskuid, path)
+		    path set<varchar>,
+		    PRIMARY KEY (taskuid)
 		  )
 		TABLE_CQL
 		begin
@@ -125,10 +125,15 @@ class CassandraWrapper
 
 	def insert_file(file)
 		begin
-			statement = @session.prepare("INSERT INTO #{KEYSPACE}.summary (taskuid, path) VALUES (?, ?)")
+			statement = @session.prepare("INSERT INTO #{KEYSPACE}.summary (taskuid, path) VALUES (?, ?) IF NOT EXISTS")
 			taskuid = generateSecmapUID(file)
 			path = File.expand_path(file)
-			@session.execute(statement, arguments: [taskuid, path], timeout: 3)
+			result = @session.execute(statement, arguments: [taskuid, Set[path]], timeout: 3)
+			if !result.first["[applied]"]
+				puts "existed"
+				statement = @session.prepare("UPDATE #{KEYSPACE}.summary SET path = path + ? WHERE taskuid = ?")
+				result = @session.execute(statement, arguments: [Set[path], taskuid], timeout: 3)
+			end
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts file+" error!!!!!!"

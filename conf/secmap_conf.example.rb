@@ -23,6 +23,9 @@ DOCKER = ''
 # Sample directory
 SAMPLE = ''
 
+# Daily update sample directories
+DAILY = ['']
+
 # Only redis server have to config this
 REDIS_INIT = {
 	'CASSANDRA' => CASSANDRA * ' ',

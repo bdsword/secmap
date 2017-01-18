@@ -17,7 +17,7 @@ def createDataHome
 end
 
 def generateSecmapUID( filename )
-	content = File.new( filename ).read
+	content = File.new(filename, 'r').read
 	id = Digest::MD5.hexdigest(content)
 	id <<  Digest::SHA1.hexdigest(content)
 	id << File.size?(filename).to_s

@@ -122,3 +122,35 @@ $ ansible all -i 192.168.100.2,192.168.100.3 -m raw -a "cd secmap && ./secmap.rb
 ```
 
 See the [How to use](#how-to-use) for more details.
+
+## Setup glusterfs for new environment
+
+1. Install glusterfs with ppa.
+  ```bash
+  $ sudo add-apt-repository ppa:semiosis/ubuntu-glusterfs-3.8
+  $ sudo apt update
+  $ sudo apt install glusterfs
+  ```
+
+2. Peer other nodes on one host. (Construct a cluster pool.)
+  ```bash
+  $ sudo gluster peer probe <hostname>
+  ```
+3. Create storage volume. (Refer official documents for details.)
+  ```bash
+  $ sudo gluster volume create <volume_name> <stripe_count> transport tcp <hostname>:/path/to/data/directory
+  ```
+
+  Ex:
+  ```bash
+  $ sudo gluster volume create test_vol 3 transport tcp node1:/glusterfs/brick
+  ```
+4. Start the volume
+  ```bash
+  $ sudo gluster volume start <volume_name>
+  ```
+
+  Ex:
+  ```bash
+  $ sudo gluster volume start test_vol
+  ```

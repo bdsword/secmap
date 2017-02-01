@@ -122,3 +122,80 @@ $ ansible all -i 192.168.100.2,192.168.100.3 -m raw -a "cd secmap && ./secmap.rb
 ```
 
 See the [How to use](#how-to-use) for more details.
+
+## Setup glusterfs for new environment
+
+In the following example, we assume there are 3 nodes. (node1, node2, and node3)
+
+1. Install glusterfs with ppa.
+  ```bash
+  $ sudo add-apt-repository ppa:semiosis/ubuntu-glusterfs-3.8
+  $ sudo apt update
+  $ sudo apt install glusterfs
+  ```
+
+2. Peer other nodes on one host. (Construct a cluster pool.)
+  ```bash
+  $ sudo gluster peer probe <hostname>
+  ```
+
+  Example:
+  On __node1__:
+  ```bash
+  $ sudo gluster peer probe node2
+  $ sudo gluster peer probe node3
+  ```
+
+3. Partition, format and mount the bricks.
+
+  Example:
+  On each nodes:
+  ```bash
+  $ sudo parted /dev/sdc
+  $ sudo mkfs.xfs -i size=512 /dev/sdc1
+  $ sudo mkdir -p /var/lib/brick1
+  $ sudo echo '/dev/sdc1 /var/lib/brick1 xfs defaults 1 2' >> /etc/fstab
+  $ sudo mount -a
+  ```
+
+4. Create volume folder.
+
+  Example:
+  On each nodes:
+  ```bash
+  $ sudo mkdir -p /var/lib/brick1/gv0
+  ```
+
+5. Create storage volume. (Refer official documents for details.)
+
+  We use distributed stripe mode here.
+
+  ```bash
+  $ sudo gluster volume create <volume_name> <striped_count> transport tcp <hostname>:/path/to/data/directory
+  ```
+
+  Example:
+  On __node1__:
+  ```bash
+  $ sudo gluster volume create test_vol stripe 3 transport tcp node2:/var/lib/brick1/gv0 node3:/var/lib/brick1/gv0
+  ```
+
+6. Start the volume.
+
+  ```bash
+  $ sudo gluster volume start <volume_name>
+  ```
+
+  Example:
+  On __node1__:
+  ```bash
+  $ sudo gluster volume start test_vol
+  ```
+
+7. Mount the volume.
+
+  Example:
+  On any node:
+  ```bash
+  $ sudo mount -t glusterfs node1:/test_vol /mnt
+  ```

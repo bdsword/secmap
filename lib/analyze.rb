@@ -45,7 +45,26 @@ class Analyze
 	end
 
 	def analyze(file_path)
-		return `/analyze #{file_path}`
+		result = ""
+		max_memory = 0
+		IO.popen("/analyze #{file_path}", "r+") { |f|
+			while true
+				begin
+					memory = `ps -o rss -p #{Process::pid}`.chomp.split("\n").last.strip.to_i
+					max_memory = [memory, max_memory].max
+					result += f.read_nonblock(4096)
+				rescue IO::WaitReadable
+					sleep 1
+					next
+				rescue EOFError
+					break
+				end
+			end
+		}
+		log = File.new('/log/memory.log', 'a')
+		log.write("#{file_path}:#{max_memory}\n")
+		log.close
+		return result
 	end
 
 	def save_report(taskuid, report)

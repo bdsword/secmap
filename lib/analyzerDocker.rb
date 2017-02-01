@@ -20,21 +20,20 @@ class AnalyzerDocker < DockerWrapper
 		  'AttachStderr': true,
 		  'Tty': true,
 		  'Entrypoint' => '/secmap/analyzer/doAnalyze.rb',
-		  'Volumes' => { '/secmap' => {}, '/sample' => {} },
+		  'Volumes' => { '/secmap' => {}, '/sample' => {}, '/log' => {} },
 		  'Labels' => { 'secmap' => @analyzerName },
 		  'ENV' => ["analyzer=#{@analyzerName}"],
 		  'HostConfig' => {
-		    'Binds' => ["#{File.expand_path(__dir__+"/../")}:/secmap:ro", "#{SAMPLE}:/sample:ro"],
+		    'Binds' => ["#{File.expand_path(__dir__+"/../")}:/secmap:ro", "#{SAMPLE}:/sample:ro", "#{File.expand_path(__dir__+"/../log")}:/log"]
 		  }
 		}
-		puts @createOptions
+		createLogHome
 	end
 
 	def startAnalyze
 		pullImage
 		createContainer
 		startContainer
-		#exec(["/secmap/analyzer/doAnalyze.rb"], detach: true)
 	end
 
 	def stopAnalyze

@@ -45,7 +45,7 @@ class PushTask < Command
 	def push_dir(dirpath, analyzer, priority)
 		dirpath = File.expand_path(dirpath)
 
-		Dir.glob("#{dirpath}/**/*/", File::FNM_DOTMATCH).each do |d|
+		Dir.glob("#{dirpath}/**/*/").each do |d|
 			if File.exist?("#{d}/all_taskuid")
 				lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
 					taskuid = line.gsub(/\t.*\n/, '')
@@ -53,7 +53,7 @@ class PushTask < Command
 				end
 			else
 				all_taskuid = File.new("#{d}/all_taskuid", 'w')
-				Dir.glob("#{d}/*", File::FNM_DOTMATCH).each do |f|
+				Dir.glob("#{d}/*").each do |f|
 					if !File.file?(f) or File.basename(f) == 'all_taskuid'
 						next
 					end

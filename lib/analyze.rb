@@ -47,11 +47,20 @@ class Analyze
 	def analyze(file_path)
 		result = ""
 		max_memory = 0
+		max_cpu = 0
+		last_cputime = 0
+		last_etimes = 0
 		IO.popen("/analyze #{file_path}", "r+") { |f|
 			while true
 				begin
-					memory = `ps -o rss -p #{Process::pid}`.chomp.split("\n").last.strip.to_i
+					memory, cputime, etimes = `ps -o vsz,cputime,etimes -p #{Process::pid}`.chomp.split("\n").last.split(' ')
+					memory = memory.strip.to_i
+					etimes = etimes.strip.to_i
+					h,m,s = cputime.split(':')
+					cputime = h.strip.to_i*60*60 + m.strip.to_i*60 + s.strip.to_i
+					cpu = (cputime - last_cputime) / (etimes - last_etimes)
 					max_memory = [memory, max_memory].max
+					max_cpu = [cpu, max_cpu].max
 					result += f.read_nonblock(4096)
 				rescue IO::WaitReadable
 					sleep 1
@@ -61,8 +70,8 @@ class Analyze
 				end
 			end
 		}
-		log = File.new('/log/memory.log', 'a')
-		log.write("#{file_path}:#{max_memory}\n")
+		log = File.new('/log/usage.log', 'a')
+		log.write("#{file_path}:#{max_memory}:#{max_cpu}\n")
 		log.close
 		return result
 	end

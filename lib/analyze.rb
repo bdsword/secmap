@@ -58,7 +58,7 @@ class Analyze
 					etimes = etimes.strip.to_i
 					h,m,s = cputime.split(':')
 					cputime = h.strip.to_i*60*60 + m.strip.to_i*60 + s.strip.to_i
-					cpu = (cputime - last_cputime) / (etimes - last_etimes)
+					cpu = (cputime - last_cputime) / (etimes - last_etimes).to_f
 					max_memory = [memory, max_memory].max
 					max_cpu = [cpu, max_cpu].max
 					result += f.read_nonblock(4096)

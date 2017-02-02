@@ -45,35 +45,28 @@ class PushTask < Command
 	def push_dir(dirpath, analyzer, priority)
 		dirpath = File.expand_path(dirpath)
 
-		if File.exist?("#{dirpath}/all_taskuid")
-			lines = File.new("#{dirpath}/all_taskuid", 'r').readlines.each do |line|
-				taskuid = line.gsub(/\t.*\n/, '')
-				push_to_redis(taskuid, analyzer, priority)
-			end
-		else
-			Dir.glob("#{dirpath}/**/*/", File::FNM_DOTMATCH).each do |d|
-				if File.exist?("#{d}/all_taskuid")
-					lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
-						taskuid = line.gsub(/\t.*\n/, '')
-						push_to_redis(taskuid, analyzer, priority)
-					end
-				else
-					all_taskuid = File.new("#{d}/all_taskuid", 'w')
-					Dir.glob("#{d}/*", File::FNM_DOTMATCH).each do |f|
-						if !File.file?(f) or File.basename(f) == 'all_taskuid'
-							next
-						end
-						STDOUT.reopen('/dev/null')
-						res = push_file(f, analyzer, priority)
-						if res != nil
-							all_taskuid.write(res + "\n")
-						else
-							all_taskuid.write("Push file #{f} error!!!!\n")
-						end
-						STDOUT.reopen($stdout)
-					end
-					all_taskuid.close
+		Dir.glob("#{dirpath}/**/*/", File::FNM_DOTMATCH).each do |d|
+			if File.exist?("#{d}/all_taskuid")
+				lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
+					taskuid = line.gsub(/\t.*\n/, '')
+					push_to_redis(taskuid, analyzer, priority)
 				end
+			else
+				all_taskuid = File.new("#{d}/all_taskuid", 'w')
+				Dir.glob("#{d}/*", File::FNM_DOTMATCH).each do |f|
+					if !File.file?(f) or File.basename(f) == 'all_taskuid'
+						next
+					end
+					STDOUT.reopen('/dev/null')
+					res = push_file(f, analyzer, priority)
+					if res != nil
+						all_taskuid.write(res + "\n")
+					else
+						all_taskuid.write("Push file #{f} error!!!!\n")
+					end
+					STDOUT.reopen($stdout)
+				end
+				all_taskuid.close
 			end
 		end
 	end

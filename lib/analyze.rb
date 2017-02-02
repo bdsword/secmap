@@ -75,7 +75,7 @@ class Analyze
 				end
 			end
 		}
-		log = File.new('/log/usage.log', 'a')
+		log = File.new("/log/#{@analyzer_name}.log", 'a')
 		log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{total_time}\n")
 		log.close
 		return result

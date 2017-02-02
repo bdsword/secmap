@@ -87,7 +87,8 @@ class CassandraWrapper
 		  CREATE TABLE #{KEYSPACE}.#{analyzer} (
 		    taskuid varchar PRIMARY KEY,
 		    overall varchar,
-		    analyzer varchar
+		    analyzer varchar,
+		    analyze_time timeuuid
 		  )
 		TABLE_CQL
 		begin
@@ -161,8 +162,9 @@ class CassandraWrapper
 	def insert_report(taskuid, report, analyzer)
 		begin
 			host = Socket.gethostname
-			statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer) VALUES (?, ?, ?)")
-			@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}"], timeout: 3)
+			generator = Cassandra::Uuid::Generator.new
+			statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer, analyze_time) VALUES (?, ?, ?, ?)")
+			@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}", generator.now], timeout: 3)
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts report+" error!!!!!!"
@@ -191,7 +193,7 @@ class CassandraWrapper
 			statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer}")
 			rows = @session.execute(statement, timeout: 3)
 			rows.each do |row|
-				report += "#{row['taskuid']}\t#{row['overall']}\t#{row['analyzer']}\n"
+				report += "#{row['taskuid']}\t#{row['overall']}\t#{row['analyzer']}\t#{row['analyze_time'].to_time.localtime.to_s}\n"
 			end
 		rescue Exception => e
 			STDERR.puts e.message

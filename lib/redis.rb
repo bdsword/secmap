@@ -26,6 +26,16 @@ class RedisWrapper
 		end
 	end
 
+	def reload_redis
+		begin
+			REDIS_INIT.each do |key, value|
+				@r[key] = value
+			end
+		rescue Redis::CannotConnectError
+			puts "Cannot connect to redis server #{REDIS_ADDR}."
+		end
+	end
+
 	def status
 		available = true
 		begin

@@ -11,12 +11,18 @@ class RedisCli < Command
 		super(commandName)
 
 		@commandTable.append("init", 0, "init_redis", ["Initialize redis data."])
+		@commandTable.append("reload", 0, "reload_redis", ["Reload redis data."])
 		@commandTable.append("status", 0, "status", ["Show redis status."])
 	end
 
 	def init_redis
 		r = RedisWrapper.new
 		r.init_redis
+	end
+
+	def reload_redis
+		r = RedisWrapper.new
+		r.reload_redis
 	end
 
 	def status

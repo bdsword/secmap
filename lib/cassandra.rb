@@ -165,8 +165,12 @@ class CassandraWrapper
 			host = Socket.gethostname
 			generator = Cassandra::Uuid::Generator.new
 			compressed_report = Zlib::Deflate.deflate(report.strip, Zlib::BEST_COMPRESSION)
+			if compressed_report.length >= 16 * 1024 * 1024
+				return false
+			end
 			statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer, analyze_time) VALUES (?, ?, ?, ?)")
 			@session.execute(statement, arguments: [taskuid, compressed_report, "#{analyzer}@#{host}", generator.now], timeout: 3)
+			return true
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts report+" error!!!!!!"

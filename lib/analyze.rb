@@ -104,7 +104,10 @@ class Analyze
 				next
 			end
 			report = analyze(file)
-			save_report(taskuid, report)
+			if save_report(taskuid, report) == false
+				log = File.new("/log/#{@analyzer_name}.log", 'a')
+				log.write("ERROR: Report > 16MB.")
+			end
 		end
 	end
 

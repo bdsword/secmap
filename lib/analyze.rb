@@ -75,8 +75,17 @@ class Analyze
 				end
 			end
 		}
+		begin
+			report = JSON.parse(result)
+		rescue JSON::ParserError
+			report = {'stat' => 'error', 'messagetype' => 'string', 'message' => 'Analyzer error'}
+		end
 		log = File.new("/log/#{@analyzer_name}.log", 'a')
-		log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{total_time}\n")
+		if report['stat'] == 'error'
+			log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{total_time}:#{report['message']}\n")
+		else
+			log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{total_time}:success\n")
+		end
 		log.close
 		return result
 	end

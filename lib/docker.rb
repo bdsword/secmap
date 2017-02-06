@@ -22,6 +22,7 @@ class DockerWrapper < Command
 		@commandTable.append("restart", 0, "restartContainer", ["Retart #{@dockerName}."])
 		@commandTable.append("status", 0, "status", ["Show #{@dockerName} status."])
 		@commandTable.append("ps", 0, "ps", ["Show all container."])
+		@commandTable.append("logs", 0, "logs", ["Show logs."])
 	end
 
 	def pullImage
@@ -176,6 +177,17 @@ class DockerWrapper < Command
 			infos.push(a.info)
 		end
 		return infos
+	end
+
+	def logs
+		logs = ''
+		begin
+			container = Docker::Container.get(@dockerName)
+			logs = container.logs(stdout: true, stderr: true)
+		rescue Docker::Error::NotFoundError
+			puts "#{@dockerName} container not create yet."
+		end
+		return logs
 	end
 
 end

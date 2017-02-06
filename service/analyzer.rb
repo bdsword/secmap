@@ -15,6 +15,7 @@ class Analyzer < Command
 		@commandTable.append("exist", 0, "printexist", ["Show all exist analyzer docker create by secmap."])
 		@commandTable.append("update", 1, "update", ["Update analyzer.", "Usage: update <analyzer docker image name> ."])
 		@commandTable.append("show", 0, "show", ["Show all analyzer image name."])
+		@commandTable.append("logs", 1, "logs", ["Show analyzer logs.", "Usage: logs <analyzer docker image name> ."])
 	end
 
 	def set(dockerImage, num)
@@ -81,11 +82,21 @@ class Analyzer < Command
 	end
 
 	def show
-		analyzer = RedisWrapper.new.get_analyzer
-		if analyzer == nil
-			puts ANALYZER * ' '
-		else
-			puts analyzer * ' '
+		puts ANALYZER * ' '
+	end
+
+	def logs(dockerImage)
+		existed = []
+
+		exist.each do |a|
+			if a[1] == dockerImage
+				existed.push(a)
+			end
+		end
+
+		existed.each do |a|
+			puts a
+			puts Docker::Container.get(a[0]).logs(stdout: true, stderr: true)
 		end
 	end
 

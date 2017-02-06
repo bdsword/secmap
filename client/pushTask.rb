@@ -45,7 +45,7 @@ class PushTask < Command
 	def push_dir(dirpath, analyzer, priority)
 		dirpath = File.expand_path(dirpath)
 
-		Dir.glob("#{dirpath}/**/*/").each do |d|
+		Dir.glob("#{dirpath}/**/*/").push(dirpath).each do |d|
 			if File.exist?("#{d}/all_taskuid")
 				lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
 					taskuid = line.gsub(/\t.*\n/, '')

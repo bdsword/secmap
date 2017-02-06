@@ -2,6 +2,7 @@
 
 require 'cassandra'
 require 'socket'
+require 'zlib'
 require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/common.rb'
 require __dir__+'/redis.rb'
@@ -86,7 +87,7 @@ class CassandraWrapper
 		table_definition = <<-TABLE_CQL
 		  CREATE TABLE #{KEYSPACE}.#{analyzer} (
 		    taskuid varchar PRIMARY KEY,
-		    overall varchar,
+		    overall blob,
 		    analyzer varchar,
 		    analyze_time timeuuid
 		  )
@@ -163,8 +164,9 @@ class CassandraWrapper
 		begin
 			host = Socket.gethostname
 			generator = Cassandra::Uuid::Generator.new
+			compressed_report = Zlib::Deflate.deflate(report.strip, Zlib::BEST_COMPRESSION)
 			statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer, analyze_time) VALUES (?, ?, ?, ?)")
-			@session.execute(statement, arguments: [taskuid, report, "#{analyzer}@#{host}", generator.now], timeout: 3)
+			@session.execute(statement, arguments: [taskuid, compressed_report, "#{analyzer}@#{host}", generator.now], timeout: 3)
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts report+" error!!!!!!"
@@ -176,10 +178,8 @@ class CassandraWrapper
 		begin
 			statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
 			rows = @session.execute(statement, arguments: [taskuid], timeout: 3)
-			rows.each do |row|
-				r = row
-				break
-			end
+			r = rows.each.first
+			r['overall'] = Zlib::Inflate.inflate(r['overall']).strip
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts "Get report error!!!!!!"
@@ -193,6 +193,7 @@ class CassandraWrapper
 			statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer}")
 			rows = @session.execute(statement, timeout: 3)
 			rows.each do |row|
+				row['overall'] = Zlib::Inflate.inflate(row['overall']).strip
 				report += "#{row['taskuid']}\t#{row['overall']}\t#{row['analyzer']}\t#{row['analyze_time'].to_time.localtime.to_s}\n"
 			end
 		rescue Exception => e

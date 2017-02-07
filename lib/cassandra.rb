@@ -89,6 +89,7 @@ class CassandraWrapper
 		    taskuid varchar PRIMARY KEY,
 		    overall blob,
 		    analyzer varchar,
+		    file boolean,
 		    analyze_time timeuuid
 		  )
 		TABLE_CQL
@@ -165,12 +166,14 @@ class CassandraWrapper
 			host = Socket.gethostname
 			generator = Cassandra::Uuid::Generator.new
 			compressed_report = Zlib::Deflate.deflate(report.strip, Zlib::BEST_COMPRESSION)
-			if compressed_report.length >= 16 * 1024 * 1024
-				return false
+			statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer, file, analyze_time) VALUES (?, ?, ?, ?, ?)")
+			if compressed_report.length >= 15 * 1024 * 1024
+				report_path = "#{REPORT}/analyzer/#{taskuid}"
+				File.open(report_path, 'wb').write(compressed_report)
+				@session.execute(statement, arguments: [taskuid, report_path, "#{analyzer}@#{host}", true, generator.now], timeout: 3)
+			else
+				@session.execute(statement, arguments: [taskuid, compressed_report, "#{analyzer}@#{host}", false, generator.now], timeout: 3)
 			end
-			statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer, analyze_time) VALUES (?, ?, ?, ?)")
-			@session.execute(statement, arguments: [taskuid, compressed_report, "#{analyzer}@#{host}", generator.now], timeout: 3)
-			return true
 		rescue Exception => e
 			STDERR.puts e.message
 			STDERR.puts report+" error!!!!!!"
@@ -183,6 +186,9 @@ class CassandraWrapper
 			statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
 			rows = @session.execute(statement, arguments: [taskuid], timeout: 3)
 			r = rows.each.first
+			if r['file'] == true
+				r['overall'] = File.open(r['overall'], 'rb').read
+			end
 			r['overall'] = Zlib::Inflate.inflate(r['overall']).strip
 		rescue Exception => e
 			STDERR.puts e.message
@@ -197,6 +203,9 @@ class CassandraWrapper
 			statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer}")
 			rows = @session.execute(statement, timeout: 3)
 			rows.each do |row|
+				if r['file'] == true
+					r['overall'] = File.open(r['overall'], 'rb').read
+				end
 				row['overall'] = Zlib::Inflate.inflate(row['overall']).strip
 				report += "#{row['taskuid']}\t#{row['overall']}\t#{row['analyzer']}\t#{row['analyze_time'].to_time.localtime.to_s}\n"
 			end

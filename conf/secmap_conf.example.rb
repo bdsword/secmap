@@ -23,6 +23,9 @@ DOCKER = ''
 # Sample directory
 SAMPLE = ''
 
+# Report directory
+REPORT = ''
+
 # Daily update sample directories
 DAILY = ['']
 

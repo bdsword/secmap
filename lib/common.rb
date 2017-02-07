@@ -16,6 +16,12 @@ def createDataHome
 	end
 end
 
+def createReportHome(analyzer)
+	if( !File.exist?(File.expand_path("#{REPORT}/#{analyzer}")) )
+		`mkdir -p #{File.expand_path("#{REPORT}/#{analyzer}")}`
+	end
+end
+
 def generateSecmapUID( filename )
 	content = File.new(filename, 'r').read
 	id = Digest::MD5.hexdigest(content)

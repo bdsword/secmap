@@ -39,7 +39,7 @@ class Analyze
       STDERR.puts "File #{taskuid} not found!!!!"
       return nil
     else
-      return path
+      return res['path'].each.first
     end
   end
 

@@ -58,9 +58,6 @@ class Analyze
           h,m,s = cputime.split(':')
           cputime = h.strip.to_i*60*60 + m.strip.to_i*60 + s.strip.to_i
           cpu = (cputime - last_cputime) / (etimes - last_etimes).to_f
-          if cpu > 1
-            puts "#{cputime} #{last_cputime} #{etimes} #{last_etimes}\n"
-          end
           last_cputime = cputime
           last_etimes = etimes
           if cpu.nan?

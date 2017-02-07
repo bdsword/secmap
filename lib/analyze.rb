@@ -13,6 +13,7 @@ class Analyze
 
 		@redis = RedisWrapper.new
 		@cassandra = CassandraWrapper.new(CASSANDRA)
+		@log = File.new("/log/#{@analyzer_name}.log", 'a')
 	end
 
 	def get_taskuid
@@ -50,7 +51,6 @@ class Analyze
 		max_cpu = 0.0
 		last_cputime = 0
 		last_etimes = 0
-		total_time = 0
 		IO.popen("/analyze #{file_path}", "r+") { |f|
 			while true
 				begin
@@ -60,14 +60,20 @@ class Analyze
 					h,m,s = cputime.split(':')
 					cputime = h.strip.to_i*60*60 + m.strip.to_i*60 + s.strip.to_i
 					cpu = (cputime - last_cputime) / (etimes - last_etimes).to_f
+					if cpu > 1
+						puts "#{cputime} #{last_cputime} #{etimes} #{last_etimes}\n"
+					end
+					last_cputime = cputime
+					last_etimes = etimes
 					if cpu.nan?
 						cpu = 0.0
 					end
 					max_memory = [memory, max_memory].max
 					max_cpu = [cpu, max_cpu].max
-					result += f.read_nonblock(4096)
+					while true
+						result += f.read_nonblock(1024*1024*1024)
+					end
 				rescue IO::WaitReadable
-					total_time += 1
 					sleep 1
 					next
 				rescue EOFError
@@ -80,23 +86,24 @@ class Analyze
 		rescue JSON::ParserError
 			report = {'stat' => 'error', 'messagetype' => 'string', 'message' => 'Analyzer error'}
 		end
-		log = File.new("/log/#{@analyzer_name}.log", 'a')
 		if report['stat'] == 'error'
-			log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{total_time}:#{report['message']}\n")
+			@log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:#{report['message']}\n")
 		else
-			log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{total_time}:success\n")
+			@log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:success\n")
 		end
-		log.close
 		return result
 	end
 
 	def save_report(taskuid, report)
-		@cassandra.insert_report(taskuid, report, @analyzer_name)
+		if @cassandra.insert_report(taskuid, report, @analyzer_name) == false
+			@log.write("ERROR: Report > 16MB.\n")
+		end
 		@redis.del_doing(@analyzer_name)
 	end
 
 	def do
 		while true
+			t1 = Time.now
 			file = nil
 			taskuid = get_taskuid
 			file = get_file(taskuid)
@@ -104,10 +111,11 @@ class Analyze
 				next
 			end
 			report = analyze(file)
-			if save_report(taskuid, report) == false
-				log = File.new("/log/#{@analyzer_name}.log", 'a')
-				log.write("ERROR: Report > 16MB.")
-			end
+			t2 = Time.now
+			save_report(taskuid, report)
+			t3 = Time.now
+			@log.write("#{t2-t1} #{t3-t2} #{t3-t1}\n")
+			@log.flush
 		end
 	end
 

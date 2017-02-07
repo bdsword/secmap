@@ -93,9 +93,7 @@ class Analyze
   end
 
   def save_report(taskuid, report)
-    if @cassandra.insert_report(taskuid, report, @analyzer_name) == false
-      @log.write("ERROR: Report > 16MB.\n")
-    end
+    @cassandra.insert_report(taskuid, report, @analyzer_name)
     @redis.del_doing(@analyzer_name)
   end
 

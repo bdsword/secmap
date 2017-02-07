@@ -168,7 +168,7 @@ class CassandraWrapper
       compressed_report = Zlib::Deflate.deflate(report.strip, Zlib::BEST_COMPRESSION)
       statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer, file, analyze_time) VALUES (?, ?, ?, ?, ?)")
       if compressed_report.length >= 15 * 1024 * 1024
-        report_path = "#{REPORT}/analyzer/#{taskuid}"
+        report_path = "#{REPORT}/#{analyzer}/#{taskuid}"
         File.open(report_path, 'wb').write(compressed_report)
         @session.execute(statement, arguments: [taskuid, report_path, "#{analyzer}@#{host}", true, generator.now], timeout: 3)
       else

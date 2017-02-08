@@ -167,17 +167,19 @@ class CassandraWrapper
       generator = Cassandra::Uuid::Generator.new
       compressed_report = Zlib::Deflate.deflate(report.strip, Zlib::BEST_COMPRESSION)
       statement = @session.prepare("INSERT INTO #{KEYSPACE}.#{analyzer} (taskuid, overall, analyzer, file, analyze_time) VALUES (?, ?, ?, ?, ?)")
-      if compressed_report.length >= 15 * 1024 * 1024
+      if compressed_report.length >= 1 * 1024 * 1024
         report_path = "#{REPORT}/#{analyzer}/#{taskuid}"
         File.open(report_path, 'wb').write(compressed_report)
         @session.execute(statement, arguments: [taskuid, report_path, "#{analyzer}@#{host}", true, generator.now], timeout: 3)
       else
         @session.execute(statement, arguments: [taskuid, compressed_report, "#{analyzer}@#{host}", false, generator.now], timeout: 3)
       end
+      return true
     rescue Exception => e
       STDERR.puts e.message
-      STDERR.puts report+" error!!!!!!"
+      STDERR.puts taskuid+" error!!!!!!"
     end
+    return false
   end
 
   def get_report(taskuid, analyzer)

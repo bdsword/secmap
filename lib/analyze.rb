@@ -82,21 +82,25 @@ class Analyze
       report = {'stat' => 'error', 'messagetype' => 'string', 'message' => 'Analyzer error'}
     end
     if report['stat'] == 'error'
-      @log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:#{report['message']}\n")
+      @log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:#{report['message']}:")
     else
-      @log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:success\n")
+      @log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:success:")
     end
     return result
   end
 
   def save_report(taskuid, report)
-    @cassandra.insert_report(taskuid, report, @analyzer_name)
-    @redis.del_doing(@analyzer_name)
+    if @cassandra.insert_report(taskuid, report, @analyzer_name) != false
+      @redis.del_doing(@analyzer_name)
+      @log.write('db_success:')
+    else
+      @log.write('db_error:')
+    end
   end
 
   def do
     while true
-      t1 = Time.now
+      start = Time.now
       file = nil
       taskuid = get_taskuid
       file = get_file(taskuid)
@@ -104,10 +108,8 @@ class Analyze
         next
       end
       report = analyze(file)
-      t2 = Time.now
       save_report(taskuid, report)
-      t3 = Time.now
-      @log.write("#{t2-t1} #{t3-t2} #{t3-t1}\n")
+      @log.write("#{Time.now - start}\n")
       @log.flush
     end
   end

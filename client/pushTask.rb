@@ -19,6 +19,7 @@ class PushTask < Command
     end
     @commandTable.append("addFile", 3, "push_file", ["Add file to task list.", "Usage: addFile <file path> <analyzer> <priority> .", "Analyzer can be all ."])
     @commandTable.append("addDir", 3, "push_dir", ["Add all files under directory to task list.", "Usage: addDir <dir path> <analyzer> <priority> .", "Analyzer can be all ."])
+    @commandTable.append("addDirBase", 4, "push_dir_base", ["Add all files with some basename under directory to task list.", "Usage: addDir <dir path> <analyzer> <priority> <basename> .", "Analyzer can be all ."])
   end
 
   def push_file(filepath, analyzer, priority)
@@ -48,7 +49,7 @@ class PushTask < Command
     Dir.glob("#{dirpath}/**/*/").push(dirpath).each do |d|
       if File.exist?("#{d}/all_taskuid")
         lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
-          taskuid = line.gsub(/\t.*\n/, '')
+          taskuid = line.strip.split("\t")[0]
           push_to_redis(taskuid, analyzer, priority)
         end
       else
@@ -59,6 +60,39 @@ class PushTask < Command
           end
           STDOUT.reopen('/dev/null')
           res = push_file(f, analyzer, priority)
+          if res != nil
+            all_taskuid.write(res + "\n")
+          else
+            all_taskuid.write("Push file #{f} error!!!!\n")
+          end
+          STDOUT.reopen($stdout)
+        end
+        all_taskuid.close
+      end
+    end
+  end
+
+  def push_dir_base(dirpath, analyzer, priority, basename)
+    dirpath = File.expand_path(dirpath)
+
+    Dir.glob("#{dirpath}/**/*/").push(dirpath).each do |d|
+      if File.exist?("#{d}/all_taskuid")
+        lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
+          taskuid, filename = line.strip.split("\t")
+          if filename.match("\.#{basename}$") != nil
+            push_to_redis(taskuid, analyzer, priority)
+          end
+        end
+      else
+        all_taskuid = File.new("#{d}/all_taskuid", 'w')
+        Dir.glob("#{d}/*").each do |f|
+          if !File.file?(f) or File.basename(f) == 'all_taskuid'
+            next
+          end
+          STDOUT.reopen('/dev/null')
+          if f.match("\.#{basename}$") != nil
+            res = push_file(f, analyzer, priority)
+          end
           if res != nil
             all_taskuid.write(res + "\n")
           else

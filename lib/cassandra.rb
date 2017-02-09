@@ -205,8 +205,8 @@ class CassandraWrapper
       statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer}")
       rows = @session.execute(statement, timeout: 3)
       rows.each do |row|
-        if r['file'] == true
-          r['overall'] = File.open(r['overall'], 'rb').read
+        if row['file'] == true
+          row['overall'] = File.open(r['overall'], 'rb').read
         end
         row['overall'] = Zlib::Inflate.inflate(row['overall']).strip
         report += "#{row['taskuid']}\t#{row['overall']}\t#{row['analyzer']}\t#{row['analyze_time'].to_time.localtime.to_s}\n"

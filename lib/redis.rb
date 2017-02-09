@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'redis'
+require 'socket'
 require __dir__+'/../conf/secmap_conf.rb'
 
 class RedisWrapper
@@ -13,6 +14,7 @@ class RedisWrapper
     end
     @taskuid = nil
     @time = nil
+    @host = Socket.gethostname
   end
 
   def init_redis
@@ -65,7 +67,7 @@ class RedisWrapper
 
   def set_doing(analyzer)
     begin
-      @r.rpush("#{analyzer}:doing", "#{@taskuid}:#{@time}")
+      @r.rpush("#{analyzer}:doing", "#{@taskuid}:#{@time}:#{@host}")
     rescue Exception => e
       STDERR.puts e.message
       STDERR.puts 'Set doing fail!!!!'
@@ -74,7 +76,7 @@ class RedisWrapper
 
   def del_doing(analyzer)
     begin
-      @r.lrem("#{analyzer}:doing" , 1, "#{@taskuid}:#{@time}")
+      @r.lrem("#{analyzer}:doing" , 1, "#{@taskuid}:#{@time}:#{@host}")
       @taskuid = nil
       @time = nil
     rescue Exception => e

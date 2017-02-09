@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'etc'
 require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/cassandra.rb'
 require __dir__+'/redis.rb'
@@ -10,6 +11,8 @@ class Analyze
     @priority = [0, 1, 2, 3]
     @analyzer_name = analyzer_name
     @sleep_seconds = 5
+    @clk_tck = Etc.sysconf(Etc::SC_CLK_TCK)
+    @np = Etc.nprocessors
 
     @redis = RedisWrapper.new
     @cassandra = CassandraWrapper.new(CASSANDRA)
@@ -47,24 +50,26 @@ class Analyze
     result = ""
     max_memory = 0
     max_cpu = 0.0
+    last_totaltime = 0
     last_cputime = 0
-    last_etimes = 0
+    start_time = 0
     IO.popen("/analyze #{file_path}", "r+") { |f|
+      user, nice, system, idle, iowait, irq, softirq, steal = File.open("/proc/stat",'r').readline.split(' ')[1..8]
+      start_time = user.to_i + nice.to_i + system.to_i + idle.to_i + iowait.to_i + irq.to_i + softirq.to_i + steal.to_i
       while true
         begin
-          memory, cputime, etimes = `ps -o vsz,cputime,etimes -p #{f.pid}`.chomp.split("\n").last.split(' ')
-          memory = memory.strip.to_i
-          etimes = etimes.strip.to_i
-          h,m,s = cputime.split(':')
-          cputime = h.strip.to_i*60*60 + m.strip.to_i*60 + s.strip.to_i
-          cpu = (cputime - last_cputime) / (etimes - last_etimes).to_f
-          last_cputime = cputime
-          last_etimes = etimes
-          if cpu.nan?
-            cpu = 0.0
-          end
-          max_memory = [memory, max_memory].max
+          user, nice, system, idle, iowait, irq, softirq, steal = File.open("/proc/stat",'r').readline.split(' ')[1..8]
+          utime, stime = File.open("/proc/#{f.pid}/stat",'r').read.strip.split(' ')[13..14]
+          totaltime = user.to_i + nice.to_i + system.to_i + idle.to_i + iowait.to_i + irq.to_i + softirq.to_i + steal.to_i
+          cputime = utime.to_i + stime.to_i
+          cpu = (cputime - last_cputime) * 10000 / (totaltime - last_totaltime) / 100.0
           max_cpu = [cpu, max_cpu].max
+          last_cputime = cputime
+          last_totaltime = totaltime
+          vmpeak = File.open("/proc/#{f.pid}/status",'r').read.match(/VmPeak:\s+([0-9]+)/)
+          if vmpeak != nil
+            max_memory = [vmpeak.captures[0].to_i, max_memory].max
+          end
           while true
             result += f.read_nonblock(1024*1024*1024)
           end
@@ -82,9 +87,9 @@ class Analyze
       report = {'stat' => 'error', 'messagetype' => 'string', 'message' => 'Analyzer error'}
     end
     if report['stat'] == 'error'
-      @log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:#{report['message']}:")
+      @log.write("#{file_path}:#{max_memory}:#{max_cpu*@np}:#{(last_totaltime - start_time)*100/@clk_tck/100.0/@np}:#{report['message']}:")
     else
-      @log.write("#{file_path}:#{max_memory}:#{max_cpu*100}:#{last_etimes}:success:")
+      @log.write("#{file_path}:#{max_memory}:#{max_cpu*@np}:#{(last_totaltime - start_time)*100/@clk_tck/100.0/@np}:success:")
     end
     return result
   end

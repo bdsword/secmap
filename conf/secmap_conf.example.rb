@@ -6,8 +6,12 @@ REDIS_ADDR = ''
 REDIS_PORT = 6379
 
 # Store the IPs of cassandra seeds
+# EX: CASSANDRA_SEEDS = ['192.168.100.1', '192.168.100.2', '192.168.100.3', ...]
+CASSANDRA_SEEDS = ['']
+# Store the IPs of cassandra nodes
 # EX: CASSANDRA = ['192.168.100.1', '192.168.100.2', '192.168.100.3', ...]
 CASSANDRA = ['']
+# Store the port of cassandra
 CASSANDRAPORT = 9042
 
 # Database keyspace

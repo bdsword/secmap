@@ -43,31 +43,34 @@ class PushTask < Command
     end
   end
 
+  def create_all_taskuid(dir)
+    all_taskuid = File.new("#{dir}/all_taskuid", 'w')
+    Dir.glob("#{dir}/*").each do |f|
+      if !File.file?(f) or File.basename(f) == 'all_taskuid'
+        next
+      end
+      STDOUT.reopen('/dev/null')
+      taskuid = @cassandra.insert_file(f)
+      if taskuid != nil
+        all_taskuid.write("#{taskuid}\t#{File.expand_path(f)}\n")
+      else
+        all_taskuid.write("Push file #{f} error!!!!\n")
+      end
+      STDOUT.reopen($stdout)
+    end
+    all_taskuid.close
+  end
+
   def push_dir(dirpath, analyzer, priority)
     dirpath = File.expand_path(dirpath)
 
     Dir.glob("#{dirpath}/**/*/").push(dirpath).each do |d|
-      if File.exist?("#{d}/all_taskuid")
-        lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
-          taskuid = line.strip.split("\t")[0]
-          push_to_redis(taskuid, analyzer, priority)
-        end
-      else
-        all_taskuid = File.new("#{d}/all_taskuid", 'w')
-        Dir.glob("#{d}/*").each do |f|
-          if !File.file?(f) or File.basename(f) == 'all_taskuid'
-            next
-          end
-          STDOUT.reopen('/dev/null')
-          res = push_file(f, analyzer, priority)
-          if res != nil
-            all_taskuid.write(res + "\n")
-          else
-            all_taskuid.write("Push file #{f} error!!!!\n")
-          end
-          STDOUT.reopen($stdout)
-        end
-        all_taskuid.close
+      if !File.exist?("#{d}/all_taskuid")
+        create_all_taskuid(d)
+      end
+      lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
+        taskuid = line.strip.split("\t")[0]
+        push_to_redis(taskuid, analyzer, priority)
       end
     end
   end
@@ -76,31 +79,14 @@ class PushTask < Command
     dirpath = File.expand_path(dirpath)
 
     Dir.glob("#{dirpath}/**/*/").push(dirpath).each do |d|
-      if File.exist?("#{d}/all_taskuid")
-        lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
-          taskuid, filename = line.strip.split("\t")
-          if filename.match("\.#{basename}$") != nil
-            push_to_redis(taskuid, analyzer, priority)
-          end
+      if !File.exist?("#{d}/all_taskuid")
+        create_all_taskuid(d)
+      end
+      lines = File.new("#{d}/all_taskuid", 'r').readlines.each do |line|
+        taskuid, filename = line.strip.split("\t")
+        if filename.match("\.#{basename}$") != nil
+          push_to_redis(taskuid, analyzer, priority)
         end
-      else
-        all_taskuid = File.new("#{d}/all_taskuid", 'w')
-        Dir.glob("#{d}/*").each do |f|
-          if !File.file?(f) or File.basename(f) == 'all_taskuid'
-            next
-          end
-          STDOUT.reopen('/dev/null')
-          if f.match("\.#{basename}$") != nil
-            res = push_file(f, analyzer, priority)
-          end
-          if res != nil
-            all_taskuid.write(res + "\n")
-          else
-            all_taskuid.write("Push file #{f} error!!!!\n")
-          end
-          STDOUT.reopen($stdout)
-        end
-        all_taskuid.close
       end
     end
   end

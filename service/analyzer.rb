@@ -15,7 +15,7 @@ class Analyzer < Command
     @commandTable.append("exist", 0, "printexist", ["Show all exist analyzer docker create by secmap."])
     @commandTable.append("update", 1, "update", ["Update analyzer.", "Usage: update <analyzer docker image name> ."])
     @commandTable.append("show", 0, "show", ["Show all analyzer image name."])
-    @commandTable.append("logs", 1, "logs", ["Show analyzer logs.", "Usage: logs <analyzer docker image name> ."])
+    @commandTable.append("logs", 1, "logs", ["Show analyzer logs.", "Usage: logs <analyzer docker image name> .", "Analyzer docker name can be all."])
   end
 
   def set(dockerImage, num)
@@ -88,9 +88,13 @@ class Analyzer < Command
   def logs(dockerImage)
     existed = []
 
-    exist.each do |a|
-      if a[1] == dockerImage
-        existed.push(a)
+    if dockerImage == 'all'
+      existed = exist
+    else
+      exist.each do |a|
+        if a[1] == dockerImage
+          existed.push(a)
+        end
       end
     end
 

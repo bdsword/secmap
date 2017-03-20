@@ -137,6 +137,10 @@ class CassandraWrapper
         statement = @session.prepare("UPDATE #{KEYSPACE}.summary SET path = path + ? WHERE taskuid = ?")
         result = @session.execute(statement, arguments: [Set[path], taskuid], timeout: 3)
       end
+    rescue WriteTimeoutError, TimeoutError => e
+      STDERR.puts e.message
+      STDERR.puts file+" timeout!!!!!!"
+      taskuid = 'timeout'
     rescue Exception => e
       STDERR.puts e.message
       STDERR.puts file+" error!!!!!!"
@@ -154,6 +158,10 @@ class CassandraWrapper
         r = row
         break
       end
+    rescue ReadTimeoutError, TimeoutError => e
+      STDERR.puts e.message
+      STDERR.puts "Get file #{taskuid} timeout!!!!!!"
+      r = 'timeout'
     rescue Exception => e
       STDERR.puts e.message
       STDERR.puts "Get file #{taskuid} error!!!!!!"
@@ -162,6 +170,7 @@ class CassandraWrapper
   end
 
   def insert_report(taskuid, report, analyzer)
+    result = false
     begin
       host = Socket.gethostname
       generator = Cassandra::Uuid::Generator.new
@@ -174,12 +183,16 @@ class CassandraWrapper
       else
         @session.execute(statement, arguments: [taskuid, compressed_report, "#{analyzer}@#{host}", false, generator.now], timeout: 3)
       end
-      return true
+      result = true
+    rescue WriteTimeoutError, TimeoutError => e
+      STDERR.puts e.message
+      STDERR.puts taskuid+" timeout!!!!!!"
+      result = 'timeout'
     rescue Exception => e
       STDERR.puts e.message
       STDERR.puts taskuid+" error!!!!!!"
     end
-    return false
+    return result
   end
 
   def get_report(taskuid, analyzer)
@@ -192,9 +205,13 @@ class CassandraWrapper
         r['overall'] = File.open(r['overall'], 'rb').read
       end
       r['overall'] = Zlib::Inflate.inflate(r['overall']).strip
+    rescue ReadTimeoutError, TimeoutError => e
+      STDERR.puts e.message
+      STDERR.puts "Get report #{taskuid} timeout!!!!!!"
+      r = 'timeout'
     rescue Exception => e
       STDERR.puts e.message
-      STDERR.puts "Get report error!!!!!!"
+      STDERR.puts "Get report #{taskuid} error!!!!!!"
     end
     return r
   end

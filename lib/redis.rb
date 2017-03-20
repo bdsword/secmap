@@ -85,6 +85,15 @@ class RedisWrapper
     end
   end
 
+  def set_error(analyzer)
+    begin
+      @r.rpush("#{analyzer}:error", "#{@taskuid}:#{@time}:#{@host}")
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts 'Set doing fail!!!!'
+    end
+  end
+
   def push_taskuid(taskuid, analyzer, priority)
     begin
       @r.rpush("#{analyzer}:#{priority}", taskuid)

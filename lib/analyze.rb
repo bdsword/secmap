@@ -38,7 +38,13 @@ class Analyze
 
   def get_file(taskuid)
     res = @cassandra.get_file(taskuid)
-    if res == nil
+    if res == 'timeout'
+      while res == 'timeout'
+        STDERR.puts "File #{taskuid} timeout!!!!"
+        sleep Random.rand(10..30)
+        res = @cassandra.get_file(taskuid)
+      end
+    elsif res == nil
       STDERR.puts "File #{taskuid} not found!!!!"
       return nil
     else
@@ -85,6 +91,8 @@ class Analyze
       report = JSON.parse(result)
     rescue JSON::ParserError
       report = {'stat' => 'error', 'messagetype' => 'string', 'message' => 'Analyzer error'}
+      @redis.set_error(@analyzer_name)
+      result = nil
     end
     if report['stat'] == 'error'
       @log.write("#{file_path}:#{max_memory}:#{max_cpu*@np}:#{(last_totaltime - start_time)*100/@clk_tck/100.0/@np}:#{report['message']}:")
@@ -95,11 +103,18 @@ class Analyze
   end
 
   def save_report(taskuid, report)
-    if @cassandra.insert_report(taskuid, report, @analyzer_name) != false
+    res = @cassandra.insert_report(taskuid, report, @analyzer_name)
+    if res == 'timeout'
+      while res == 'timeout'
+        STDERR.puts "#{taskuid} timeout!!!!"
+        sleep Random.rand(10..30)
+        res = @cassandra.insert_report(taskuid, report, @analyzer_name)
+      end
+    elsif res == false
+      @log.write('db_error:')
+    else
       @redis.del_doing(@analyzer_name)
       @log.write('db_success:')
-    else
-      @log.write('db_error:')
     end
   end
 
@@ -113,7 +128,11 @@ class Analyze
         next
       end
       report = analyze(file)
-      save_report(taskuid, report)
+      if report == nil
+        @log.write('db_no_store:')
+      else
+        save_report(taskuid, report)
+      end
       @log.write("#{Time.now - start}\n")
       @log.flush
     end

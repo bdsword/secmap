@@ -3,9 +3,11 @@
 require 'cassandra'
 require 'socket'
 require 'zlib'
+require 'csv'
 require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/common.rb'
 require __dir__+'/redis.rb'
+require __dir__+'/../client/pushTask.rb'
 
 class CassandraWrapper
 
@@ -83,6 +85,24 @@ class CassandraWrapper
     end
   end
 
+  def create_dataset
+    table_definition = <<-TABLE_CQL
+      CREATE TABLE #{KEYSPACE}.DATASET (
+        dataset varchar,
+        taskuid varchar,
+        path varchar,
+        label varchar,
+        PRIMARY KEY (dataset, taskuid)
+      )
+    TABLE_CQL
+    begin
+      @session.execute(table_definition)
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts "Cannot create dataset table."
+    end
+  end
+
   def create_analyzer(analyzer)
     table_definition = <<-TABLE_CQL
       CREATE TABLE #{KEYSPACE}.#{analyzer} (
@@ -124,6 +144,43 @@ class CassandraWrapper
       STDERR.puts "Cannot get all tables."
     end
     return tables
+  end
+
+  def parse_dataset_csv(csv, dir)
+    result = []
+    CSV.foreach(csv) do |file, label|
+      result << [File.expand_path("#{dir}/#{file}.asm"), label]
+      result << [File.expand_path("#{dir}/#{file}.bytes"), label]
+    end
+    return result[2..-1]
+  end
+
+  def import_dataset(dataset, csv, dir)
+    if !File.exist?("#{dir}/all_taskuid")
+      p "no all_taskuid"
+      #PushTask.new("").create_all_taskuid(dir)
+    end
+    labels = parse_dataset_csv(csv, dir)
+    taskuid_hash = {}
+    File.open("#{dir}/all_taskuid").readlines.each do |line|
+      taskuid, file = line.strip.split("\t")
+      taskuid_hash[file] = taskuid
+    end
+    labels.each do |label|
+      label << taskuid_hash[label[0]]
+    end
+    begin
+      statement = @session.prepare("INSERT INTO #{KEYSPACE}.dataset (dataset, path, label, taskuid) VALUES (?, ?, ?, ?)")
+      batch = @session.batch do |b|
+        labels.each do |label|
+          b.add(statement, arguments: [dataset, label[0], label[1], label[2]])
+        end
+      end
+      @session.execute(batch)
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts "import csv error!!!!"
+    end
   end
 
   def insert_file(file)

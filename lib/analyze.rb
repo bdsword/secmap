@@ -92,6 +92,7 @@ class Analyze
     rescue JSON::ParserError
       report = {'stat' => 'error', 'messagetype' => 'string', 'message' => 'Analyzer error'}
       @redis.set_error(@analyzer_name)
+      @redis.del_doing(@analyzer_name)
       result = nil
     end
     if report['stat'] == 'error'

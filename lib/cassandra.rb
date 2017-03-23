@@ -103,6 +103,25 @@ class CassandraWrapper
     end
   end
 
+  def create_msdataset
+    table_definition = <<-TABLE_CQL
+      CREATE TABLE #{KEYSPACE}.MSDATASET (
+        dataset varchar,
+        sample varchar,
+        asm_taskuid varchar,
+        bytes_taskuid varchar,
+        label varchar,
+        PRIMARY KEY (dataset, sample)
+      )
+    TABLE_CQL
+    begin
+      @session.execute(table_definition)
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts "Cannot create dataset table."
+    end
+  end
+
   def create_analyzer(analyzer)
     table_definition = <<-TABLE_CQL
       CREATE TABLE #{KEYSPACE}.#{analyzer} (
@@ -149,16 +168,15 @@ class CassandraWrapper
   def parse_dataset_csv(csv, dir)
     result = []
     CSV.foreach(csv) do |file, label|
-      result << [File.expand_path("#{dir}/#{file}.asm"), label]
-      result << [File.expand_path("#{dir}/#{file}.bytes"), label]
+      result << [File.expand_path("#{dir}/#{file}"), label]
     end
-    return result[2..-1]
+    return result[1..-1]
   end
 
   def import_dataset(dataset, csv, dir)
     if !File.exist?("#{dir}/all_taskuid")
       p "no all_taskuid"
-      #PushTask.new("").create_all_taskuid(dir)
+      PushTask.new("").create_all_taskuid(dir)
     end
     labels = parse_dataset_csv(csv, dir)
     taskuid_hash = {}
@@ -174,6 +192,43 @@ class CassandraWrapper
       batch = @session.batch do |b|
         labels.each do |label|
           b.add(statement, arguments: [dataset, label[0], label[1], label[2]])
+        end
+      end
+      @session.execute(batch)
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts "import csv error!!!!"
+    end
+  end
+
+  def parse_msdataset_csv(csv, dir)
+    result = []
+    CSV.foreach(csv) do |file, label|
+      result << [file, File.expand_path("#{dir}/#{file}.asm"), File.expand_path("#{dir}/#{file}.bytes"), label]
+    end
+    return result[1..-1]
+  end
+
+  def import_msdataset(dataset, csv, dir)
+    if !File.exist?("#{dir}/all_taskuid")
+      p "no all_taskuid"
+      PushTask.new("").create_all_taskuid(dir)
+    end
+    labels = parse_msdataset_csv(csv, dir)
+    taskuid_hash = {}
+    File.open("#{dir}/all_taskuid").readlines.each do |line|
+      taskuid, file = line.strip.split("\t")
+      taskuid_hash[file] = taskuid
+    end
+    labels.each do |label|
+      label[1] = taskuid_hash[label[1]]
+      label[2] = taskuid_hash[label[2]]
+    end
+    begin
+      statement = @session.prepare("INSERT INTO #{KEYSPACE}.msdataset (dataset, sample, asm_taskuid, bytes_taskuid, label) VALUES (?, ?, ?, ?, ?)")
+      batch = @session.batch do |b|
+        labels.each do |label|
+          b.add(statement, arguments: [dataset, label[0], label[1], label[2], label[3]])
         end
       end
       @session.execute(batch)

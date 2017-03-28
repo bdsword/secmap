@@ -3,6 +3,7 @@
 require 'cassandra'
 require 'socket'
 require 'zlib'
+require 'json'
 require 'csv'
 require __dir__+'/../conf/secmap_conf.rb'
 require __dir__+'/common.rb'
@@ -335,7 +336,7 @@ class CassandraWrapper
       rows = @session.execute(statement, timeout: 3)
       rows.each do |row|
         if row['file'] == true
-          row['overall'] = File.open(r['overall'], 'rb').read
+          row['overall'] = File.open(row['overall'], 'rb').read
         end
         row['overall'] = Zlib::Inflate.inflate(row['overall']).strip
         report += "#{row['taskuid']}\t#{row['overall']}\t#{row['analyzer']}\t#{row['analyze_time'].to_time.localtime.to_s}\n"
@@ -345,6 +346,161 @@ class CassandraWrapper
       STDERR.puts "Get all report error!!!!!!"
     end
     return report
+  end
+
+  def parse_record(row)
+    if row['file'] == true
+      row['overall'] = File.open(row['overall'], 'rb').read
+    end
+    overall = Zlib::Inflate.inflate(row['overall']).strip
+    if overall.empty?
+      puts row.inspect
+      raise "Empty overall found for taskuid: #{row['taskuid']}"
+    end
+    record = overall
+    record = JSON.parse(record)
+    return record
+  end
+
+  def create_csv_header(analyzers)
+    analyzers_feature_num = {}
+    analyzers.each do |analyzer|
+      statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} LIMIT 1")
+      @session.execute(statement, timeout: 3).each do |row|
+        record = parse_record(row)
+        if record['stat'] == 'success' && record['messagetype'] == 'list'
+          num_features = record['message'].length
+          analyzers_feature_num[analyzer] = num_features
+        end
+      end
+    end
+
+    csv_header = []
+    analyzers_feature_num.each do |analyzer, feature_num|
+      (0..feature_num-1).each do |i|
+        csv_header << "#{analyzer}(#{i})"
+      end
+    end
+    return csv_header
+  end
+  
+  def get_all_report_to_csv(filename)
+    tables = list_tables()
+    # Remove tables that are not a analyze table
+    # analyzers = tables - ['summary', 'dataset', 'api_bin']
+    analyzers_feature_num = []
+
+    analyzers_asm = ['register_asm', 'md2_asm', 'opcode_asm', 'api_asm', 'dp_asm', 'sym_asm', 'misc_asm', 'section_asm']
+    analyzers_bytes = ['img1_bytes', 'bytes_2_gram', 'bytes_1_gram', 'md1_bytes', 'entropy_bytes', 'img2_bytes']
+
+    begin
+      CSV.open(filename, 'wb') do |csv|
+        # First construct csv header
+        csv_header = create_csv_header(analyzers_bytes + analyzers_asm)
+        csv << (csv_header << "label")
+
+        # Second, deal with features
+        statement = @session.prepare("SELECT asm_taskuid,bytes_taskuid,label FROM #{KEYSPACE}.msdataset")
+        @session.execute(statement, timeout: 3).each do |sample|
+          asm_taskuid = sample['asm_taskuid']
+          bytes_taskuid = sample['bytes_taskuid']
+          label = sample['label']
+
+          features = []
+          success = true
+          analyzers_asm.each do |analyzer|
+            row_stmt = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
+            rows = @session.execute(row_stmt, arguments: [asm_taskuid], timeout: 3)
+            if rows.length > 1
+              raise "Found more than one record for asm_taskuid: #{taskuid}"
+            elsif rows.length == 0
+              puts "Cannot found record for asm_taskuid: #{taskuid} in analyzer: #{analyzer}."
+              success = false
+              break
+            end
+
+            row = rows.first
+            
+            begin
+              record = parse_record(row)
+            rescue
+              puts "Parse record failed for #{row['taskuid']}"
+              success = false
+              next
+            end
+
+            if record['stat'] == 'success' && record['messagetype'] == 'list'
+              raise "List required but #{record['message'].class} found." if record['message'].class != Array
+              features += record['message']
+            elsif
+              puts "Either stat not success or messagetype not list for taskuid: #{asm_taskuid} in analyzer: #{analyzer}."
+              success = false
+            end
+          end
+
+          if success == false
+            #next
+          end
+
+          analyzers_bytes.each do |analyzer|
+            row_stmt = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
+            rows = @session.execute(row_stmt, arguments: [bytes_taskuid], timeout: 3)
+            if rows.length > 1
+              raise "Found more than one record for bytes_taskuid: #{taskuid}"
+            elsif rows.length == 0
+              puts "Cannot found record for bytes_taskuid: #{bytes_taskuid} in analyzer: #{analyzer}."
+              success = false
+              break
+            end
+
+            row = rows.first
+            
+            begin
+              record = parse_record(row)
+            rescue
+              puts "Parse record failed for #{row['taskuid']}"
+              success = false
+              next 
+            end
+
+            if record['stat'] == 'success' && record['messagetype'] == 'list'
+              raise "List required but #{record['message'].class} found." if record['message'].class != Array
+              features += record['message']
+            elsif
+              puts "Either stat not success or messagetype not list for taskuid: #{taskuid} in analyzer: #{analyzer}."
+              success = false
+            end
+          end
+          
+          if success
+            csv << (features << label)
+          end
+        end
+      end
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts e.backtrace
+      STDERR.puts "Get all report error!!!!!!"
+    end
+  end
+
+  def select_feature_from(filename, analyzers, output_filename)
+    CSV.open(output_filename, 'wb') do |csv|
+      CSV.foreach(filename, headers: true) do |row|
+        filtered_row = []
+        row.each do |feature_name, value|
+          if feature_name == 'label'
+            filtered_row << value
+          else
+            feature_analyzer = /(.*)\(\d+\)/.match(feature_name)[1]
+            if analyzers.include? feature_analyzer
+              filtered_row << value
+            end
+          end
+        end
+        csv << filtered_row
+      end
+    end
   end
 
   def close

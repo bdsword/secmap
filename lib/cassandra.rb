@@ -354,49 +354,98 @@ class CassandraWrapper
     end
     overall = Zlib::Inflate.inflate(row['overall']).strip
     if overall.empty?
-      puts row.inspect
-      raise "Empty overall found for taskuid: #{row['taskuid']}"
+      return nil
     end
     record = overall
     record = JSON.parse(record)
     return record
   end
 
-  def create_csv_header(analyzers)
-    analyzers_feature_num = {}
-    analyzers.each do |analyzer|
-      statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} LIMIT 1")
-      @session.execute(statement, timeout: 3).each do |row|
-        record = parse_record(row)
-        if record['stat'] == 'success' && record['messagetype'] == 'list'
-          num_features = record['message'].length
-          analyzers_feature_num[analyzer] = num_features
-        end
+  def get_feature_dim(analyzer)
+    # This function may spend a long time to detect feature dimensions
+    statement = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} LIMIT 100")
+    @session.execute(statement, timeout: 3).each do |row|
+      record = parse_record(row)
+      if record && record['stat'] == 'success' && record['messagetype'] == 'list'
+        num_features = record['message'].length
+        return num_features
       end
     end
+    return nil
+  end
 
+  def get_feature_dims(analyzers)
+    dims = {}
+    analyzers.each do |analyzer|
+      dims[analyzer] = get_feature_dim(analyzer)
+    end
+    return dims
+  end
+
+  def create_csv_header(analyzer_dims)
     csv_header = []
-    analyzers_feature_num.each do |analyzer, feature_num|
+    analyzer_dims.each do |analyzer, feature_num|
       (0..feature_num-1).each do |i|
         csv_header << "#{analyzer}(#{i})"
       end
     end
     return csv_header
   end
+
+  def gen_empty_features(dims)
+    features = []
+    dims.times do
+      features << nil
+    end
+    return features
+  end
+
+  def get_analyzers_features(analyzers, analyzer_dims, taskuid)
+    features = []
+    analyzers.each_with_index do |analyzer|
+      cur_features = []
+      dims = analyzer_dims[analyzer]
+      row_stmt = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
+      rows = @session.execute(row_stmt, arguments: [taskuid], timeout: 3)
+      if rows.length > 1
+        raise "Found more than one record for taskuid #{taskuid} in analyzer #{analyzer}"
+      elsif rows.length == 0
+        cur_features = gen_empty_features(dims)
+      else
+        # Parse the row and extract the message
+        row = rows.first
+        
+        record = parse_record(row)
+        if record && record['stat'] == 'success' && record['messagetype'] == 'list'
+          cur_features = record['message']
+        else
+          cur_features = gen_empty_features(dims)
+        end
+      end
+
+      features += cur_features
+    end
+    return features
+  end
   
   def get_all_report_to_csv(filename)
-    tables = list_tables()
+    # tables = list_tables()
     # Remove tables that are not a analyze table
     # analyzers = tables - ['summary', 'dataset', 'api_bin']
-    analyzers_feature_num = []
 
     analyzers_asm = ['register_asm', 'md2_asm', 'opcode_asm', 'api_asm', 'dp_asm', 'sym_asm', 'misc_asm', 'section_asm']
     analyzers_bytes = ['img1_bytes', 'bytes_2_gram', 'bytes_1_gram', 'md1_bytes', 'entropy_bytes', 'img2_bytes']
 
+    # The order is important asm + bytes
+    analyzers = analyzers_asm + analyzers_bytes 
+    analyzer_dims = get_feature_dims(analyzers)
+
     begin
       CSV.open(filename, 'wb') do |csv|
-        # First construct csv header
-        csv_header = create_csv_header(analyzers_bytes + analyzers_asm)
+        # First construct csv header,
+        # the order of the fields would be the same as the insertion order of hash keys,
+        # which is the order of the array variable analyzers
+        csv_header = create_csv_header(analyzer_dims)
         csv_header << "label"
         csv_header << "sample"
         csv << csv_header
@@ -410,76 +459,16 @@ class CassandraWrapper
           label = sample['label']
 
           features = []
-          success = true
-          analyzers_asm.each do |analyzer|
-            row_stmt = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
-            rows = @session.execute(row_stmt, arguments: [asm_taskuid], timeout: 3)
-            if rows.length > 1
-              raise "Found more than one record for asm_taskuid: #{taskuid}"
-            elsif rows.length == 0
-              puts "Cannot found record for asm_taskuid: #{taskuid} in analyzer: #{analyzer}."
-              success = false
-              break
-            end
 
-            row = rows.first
-            
-            begin
-              record = parse_record(row)
-            rescue
-              puts "Parse record failed for #{row['taskuid']}"
-              success = false
-              next
-            end
+          # We must get asm features first since we must follow the csv header order
+          features += get_analyzers_features(analyzers_asm, analyzer_dims, asm_taskuid)
 
-            if record['stat'] == 'success' && record['messagetype'] == 'list'
-              raise "List required but #{record['message'].class} found." if record['message'].class != Array
-              features += record['message']
-            elsif
-              puts "Either stat not success or messagetype not list for taskuid: #{asm_taskuid} in analyzer: #{analyzer}."
-              success = false
-            end
-          end
+          features += get_analyzers_features(analyzers_bytes, analyzer_dims, bytes_taskuid)
 
-          if success == false
-            #next
-          end
+          features << label
+          features << sample_name
 
-          analyzers_bytes.each do |analyzer|
-            row_stmt = @session.prepare("SELECT * FROM #{KEYSPACE}.#{analyzer} WHERE taskuid = ?")
-            rows = @session.execute(row_stmt, arguments: [bytes_taskuid], timeout: 3)
-            if rows.length > 1
-              raise "Found more than one record for bytes_taskuid: #{taskuid}"
-            elsif rows.length == 0
-              puts "Cannot found record for bytes_taskuid: #{bytes_taskuid} in analyzer: #{analyzer}."
-              success = false
-              break
-            end
-
-            row = rows.first
-            
-            begin
-              record = parse_record(row)
-            rescue
-              puts "Parse record failed for #{row['taskuid']}"
-              success = false
-              next 
-            end
-
-            if record['stat'] == 'success' && record['messagetype'] == 'list'
-              raise "List required but #{record['message'].class} found." if record['message'].class != Array
-              features += record['message']
-            elsif
-              puts "Either stat not success or messagetype not list for taskuid: #{taskuid} in analyzer: #{analyzer}."
-              success = false
-            end
-          end
-          
-          if success
-            features << label
-            features << sample_name
-            csv << features
-          end
+          csv << features
         end
       end
     rescue Exception => e
@@ -490,11 +479,15 @@ class CassandraWrapper
   end
 
   def select_feature_from(filename, analyzers, output_filename)
+    analyzer_dims = get_feature_dims(analyzers)
+    csv_header = create_csv_header(analyzer_dims)
+
     CSV.open(output_filename, 'wb') do |csv|
+      csv << csv_header
       CSV.foreach(filename, headers: true) do |row|
         filtered_row = []
         row.each do |feature_name, value|
-          if feature_name == 'label'
+          if ['label', 'sample'].include?(feature_name)
             filtered_row << value
           else
             feature_analyzer = /(.*)\(\d+\)/.match(feature_name)[1]

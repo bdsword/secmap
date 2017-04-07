@@ -397,13 +397,16 @@ class CassandraWrapper
       CSV.open(filename, 'wb') do |csv|
         # First construct csv header
         csv_header = create_csv_header(analyzers_bytes + analyzers_asm)
-        csv << (csv_header << "label")
+        csv_header << "label"
+        csv_header << "sample"
+        csv << csv_header
 
         # Second, deal with features
-        statement = @session.prepare("SELECT asm_taskuid,bytes_taskuid,label FROM #{KEYSPACE}.msdataset")
+        statement = @session.prepare("SELECT asm_taskuid,bytes_taskuid,label,sample FROM #{KEYSPACE}.msdataset")
         @session.execute(statement, timeout: 3).each do |sample|
           asm_taskuid = sample['asm_taskuid']
           bytes_taskuid = sample['bytes_taskuid']
+          sample_name = sample['sample']
           label = sample['label']
 
           features = []
@@ -473,7 +476,9 @@ class CassandraWrapper
           end
           
           if success
-            csv << (features << label)
+            features << label
+            features << sample_name
+            csv << features
           end
         end
       end

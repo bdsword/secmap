@@ -210,20 +210,51 @@ class CassandraWrapper
     return result[1..-1]
   end
 
+  def parse_ms_all_taskuid(dir)
+    sample_hash = {}
+    File.open("#{dir}/all_taskuid").readlines.each do |line|
+      taskuid, file = line.strip.split("\t")
+      file = File.basename(file)
+      file, type = file.split('.')
+      if type == 'asm'
+        if sample_hash[file] == nil
+          sample_hash[file] = [taskuid]
+        else
+          sample_hash[file] = [taskuid].push(sample_hash[file][0])
+        end
+      elsif type == 'bytes'
+        if sample_hash[file] == nil
+          sample_hash[file] = [taskuid]
+        else
+          sample_hash[file].push(taskuid)
+        end
+      end
+    end
+    result = []
+    sample_hash.each do |key, value|
+      result << value.insert(0, key).insert(-1, 'unknown')
+    end
+    return result
+  end
+
   def import_msdataset(dataset, csv, dir)
     if !File.exist?("#{dir}/all_taskuid")
       p "no all_taskuid"
       PushTask.new("").create_all_taskuid(dir)
     end
-    labels = parse_msdataset_csv(csv, dir)
-    taskuid_hash = {}
-    File.open("#{dir}/all_taskuid").readlines.each do |line|
-      taskuid, file = line.strip.split("\t")
-      taskuid_hash[file] = taskuid
-    end
-    labels.each do |label|
-      label[1] = taskuid_hash[label[1]]
-      label[2] = taskuid_hash[label[2]]
+    if csv == nil
+      labels = parse_ms_all_taskuid(dir)
+    else
+      labels = parse_msdataset_csv(csv, dir)
+      taskuid_hash = {}
+      File.open("#{dir}/all_taskuid").readlines.each do |line|
+        taskuid, file = line.strip.split("\t")
+        taskuid_hash[file] = taskuid
+      end
+      labels.each do |label|
+        label[1] = taskuid_hash[label[1]]
+        label[2] = taskuid_hash[label[2]]
+      end
     end
     begin
       statement = @session.prepare("INSERT INTO #{KEYSPACE}.msdataset (dataset, sample, asm_taskuid, bytes_taskuid, label) VALUES (?, ?, ?, ?, ?)")
@@ -428,7 +459,7 @@ class CassandraWrapper
     return features
   end
   
-  def get_all_report_to_csv(filename)
+  def get_all_report_to_csv(filename, type)
     # tables = list_tables()
     # Remove tables that are not a analyze table
     # analyzers = tables - ['summary', 'dataset', 'api_bin']
@@ -451,7 +482,7 @@ class CassandraWrapper
         csv << csv_header
 
         # Second, deal with features
-        statement = @session.prepare("SELECT asm_taskuid,bytes_taskuid,label,sample FROM #{KEYSPACE}.msdataset")
+        statement = @session.prepare("SELECT asm_taskuid,bytes_taskuid,label,sample FROM #{KEYSPACE}.msdataset WHERE dataset = '#{type}'")
         @session.execute(statement, timeout: 3).each do |sample|
           asm_taskuid = sample['asm_taskuid']
           bytes_taskuid = sample['bytes_taskuid']
@@ -465,7 +496,11 @@ class CassandraWrapper
 
           features += get_analyzers_features(analyzers_bytes, analyzer_dims, bytes_taskuid)
 
-          features << label
+          if label == 'unknown'
+            features << nil
+          else
+            features << label
+          end
           features << sample_name
 
           csv << features

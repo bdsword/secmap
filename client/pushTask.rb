@@ -43,6 +43,19 @@ class PushTask < Command
     end
   end
 
+  def create_taskuid_by_file(dir, list)
+    all_taskuid = File.new("#{dir}/all_taskuid", 'w')
+    File.open(list, 'r').readlines.each do |f|
+      f = f.strip
+      taskuid = @cassandra.insert_file("#{dir}/#{f}")
+      if taskuid != nil
+        all_taskuid.write("#{taskuid}\t#{File.expand_path("#{dir}/#{f}")}\n")
+      else
+        STDERR.puts("Push file #{f} error!!!!\n")
+      end
+    end
+  end
+
   def create_all_taskuid(dir)
     all_taskuid = File.new("#{dir}/all_taskuid", 'w')
     Dir.glob("#{dir}/*").each do |f|

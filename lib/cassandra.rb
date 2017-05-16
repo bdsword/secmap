@@ -281,7 +281,7 @@ class CassandraWrapper
         statement = @session.prepare("UPDATE #{KEYSPACE}.summary SET path = path + ? WHERE taskuid = ?")
         result = @session.execute(statement, arguments: [Set[path], taskuid], timeout: 3)
       end
-    rescue WriteTimeoutError, TimeoutError => e
+    rescue TimeoutError => e
       STDERR.puts e.message
       STDERR.puts file+" timeout!!!!!!"
       taskuid = 'timeout'
@@ -328,7 +328,7 @@ class CassandraWrapper
         @session.execute(statement, arguments: [taskuid, compressed_report, "#{analyzer}@#{host}", false, generator.now], timeout: 3)
       end
       result = true
-    rescue WriteTimeoutError, TimeoutError => e
+    rescue TimeoutError => e
       STDERR.puts e.message
       STDERR.puts taskuid+" timeout!!!!!!"
       result = 'timeout'
@@ -483,27 +483,32 @@ class CassandraWrapper
 
         # Second, deal with features
         statement = @session.prepare("SELECT asm_taskuid,bytes_taskuid,label,sample FROM #{KEYSPACE}.msdataset WHERE dataset = '#{type}'")
-        @session.execute(statement, timeout: 3).each do |sample|
-          asm_taskuid = sample['asm_taskuid']
-          bytes_taskuid = sample['bytes_taskuid']
-          sample_name = sample['sample']
-          label = sample['label']
+        result = @session.execute(statement, timeout: 30)
+        loop do
+          result.each do |sample|
+            asm_taskuid = sample['asm_taskuid']
+            bytes_taskuid = sample['bytes_taskuid']
+            sample_name = sample['sample']
+            label = sample['label']
 
-          features = []
+            features = []
 
-          # We must get asm features first since we must follow the csv header order
-          features += get_analyzers_features(analyzers_asm, analyzer_dims, asm_taskuid)
+            # We must get asm features first since we must follow the csv header order
+            features += get_analyzers_features(analyzers_asm, analyzer_dims, asm_taskuid)
 
-          features += get_analyzers_features(analyzers_bytes, analyzer_dims, bytes_taskuid)
+            features += get_analyzers_features(analyzers_bytes, analyzer_dims, bytes_taskuid)
 
-          if label == 'unknown'
-            features << nil
-          else
-            features << label
+            if label == 'unknown'
+              features << nil
+            else
+              features << label
+            end
+            features << sample_name
+
+            csv << features
           end
-          features << sample_name
-
-          csv << features
+          break if result.last_page?
+          result = result.next_page()
         end
       end
     rescue Exception => e

@@ -62,14 +62,15 @@ class PushTask < Command
       if !File.file?(f) or File.basename(f) == 'all_taskuid'
         next
       end
-      STDOUT.reopen('/dev/null')
+      ori_stdout = $stdout.clone
+      $stdout.reopen('/dev/null')
       taskuid = @cassandra.insert_file(f)
       if taskuid != nil
         all_taskuid.write("#{taskuid}\t#{File.expand_path(f)}\n")
       else
         all_taskuid.write("Push file #{f} error!!!!\n")
       end
-      STDOUT.reopen($stdout)
+      $stdout.reopen(ori_stdout)
     end
     all_taskuid.close
   end

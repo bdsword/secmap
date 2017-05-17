@@ -32,13 +32,13 @@ class Analyzer < Command
       Docker::Container.get(existed.pop[0]).delete(:force => true)
     end
 
-    STDOUT.reopen('/dev/null')
+    ori_stdout = $stdout.clone
+    $stdout.reopen('/dev/null')
     (existed.length+1..num).each do |n|
       puts dockerImage, dockerImage.class
       AnalyzerDocker.new(dockerImage).startAnalyze
     end
-    STDOUT.reopen($stdout)
-    puts '123'
+    $stdout.reopen(ori_stdout)
     existed.each do |a|
       Docker::Container.get(a[0]).start
     end

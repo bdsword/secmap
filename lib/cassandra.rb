@@ -458,7 +458,42 @@ class CassandraWrapper
     end
     return features
   end
-  
+
+  def get_all_report_to_csv_bin(filename, list)
+    analyzers = ["opcode_bin", "register_bin", "entropy_bin ", "str_bin", "section_bin", "iat_bin", "header_bin", "api_bin"]
+    analyzer_dims = get_feature_dims(analyzers)
+
+    begin
+      CSV.open(filename, 'wb') do |csv|
+        # First construct csv header,
+        # the order of the fields would be the same as the insertion order of hash keys,
+        # which is the order of the array variable analyzers
+        csv_header = create_csv_header(analyzer_dims)
+        csv_header << "label"
+        csv_header << "sample"
+        csv << csv_header
+
+        File.open(list, 'r').readlines.each do |sample|
+          taskuid, sample_name = sample.strip.split("\t")
+          sample_name = File.basename(sample_name)
+
+          features = []
+
+          # We must get asm features first since we must follow the csv header order
+          features += get_analyzers_features(analyzers, analyzer_dims, taskuid)
+
+          features << sample_name
+
+          csv << features
+        end
+      end
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts e.backtrace
+      STDERR.puts "Get all report error!!!!!!"
+    end
+  end
+
   def get_all_report_to_csv(filename, type)
     # tables = list_tables()
     # Remove tables that are not a analyze table

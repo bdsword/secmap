@@ -469,7 +469,6 @@ class CassandraWrapper
         # the order of the fields would be the same as the insertion order of hash keys,
         # which is the order of the array variable analyzers
         csv_header = create_csv_header(analyzer_dims)
-        csv_header << "label"
         csv_header << "sample"
         csv << csv_header
 
